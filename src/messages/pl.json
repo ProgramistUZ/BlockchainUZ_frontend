@@ -1,0 +1,28 @@
+{
+  "meta": {
+    "title": "BlockchainUZ",
+    "description": "Aplikacja frontendowa BlockchainUZ"
+  },
+  "home": {
+    "heading": "Aby zacząć, edytuj plik page.tsx.",
+    "description": "Szukasz punktu wyjścia lub dodatkowych instrukcji? Przejdź do {templates} lub centrum {learning}.",
+    "templates": "Szablonów",
+    "learning": "Nauki",
+    "deployNow": "Wdróż teraz",
+    "documentation": "Dokumentacja"
+  },
+  "theme": {
+    "light": "Jasny",
+    "dark": "Ciemny",
+    "system": "Systemowy",
+    "toggleTheme": "Zmień motyw"
+  },
+  "nav": {
+    "dashboard": "Panel"
+  },
+  "language": {
+    "switchLanguage": "Język",
+    "pl": "Polski",
+    "en": "English"
+  }
+}
