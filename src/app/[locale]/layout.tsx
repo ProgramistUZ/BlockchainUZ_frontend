@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
+import { MSWProvider } from "@/components/msw-provider";
 import "../globals.css";
 
 const geistSans = Geist({
@@ -56,11 +57,13 @@ export default async function LocaleLayout({
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
           <NextIntlClientProvider messages={messages}>
-            <TooltipProvider>
-              <Navbar />
-              <main className="flex-1">{children}</main>
-              <Footer />
-            </TooltipProvider>
+            <MSWProvider>
+              <TooltipProvider>
+                <Navbar />
+                <main className="flex-1">{children}</main>
+                <Footer />
+              </TooltipProvider>
+            </MSWProvider>
           </NextIntlClientProvider>
         </ThemeProvider>
       </body>
