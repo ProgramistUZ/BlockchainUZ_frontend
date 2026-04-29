@@ -4,12 +4,8 @@
     "description": "Aplikacja frontendowa BlockchainUZ"
   },
   "home": {
-    "heading": "Aby zacząć, edytuj plik page.tsx.",
-    "description": "Szukasz punktu wyjścia lub dodatkowych instrukcji? Przejdź do {templates} lub centrum {learning}.",
-    "templates": "Szablonów",
-    "learning": "Nauki",
-    "deployNow": "Wdróż teraz",
-    "documentation": "Dokumentacja"
+    "heading": "BlockchainUZ Explorer",
+    "description": "Przeglądaj bloki, transakcje i portfele w sieci blockchain."
   },
   "theme": {
     "light": "Jasny",
