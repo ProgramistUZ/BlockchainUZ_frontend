@@ -248,15 +248,20 @@ highlights, and a live-failure recovery cheat sheet — lives in
 
 ## Screenshots
 
-> Capture once the UI is finalised and drop PNGs under `docs/screenshots/`. Suggested shots:
->
-> - `home.png` — hero with smart search
-> - `dashboard.png` — KPIs + charts
-> - `blocks-list.png` — paginated list
-> - `block-details.png` — block detail + embedded txs
-> - `tx-details.png` — transaction detail
-> - `wallet.png` — wallet with in/out direction
-> - `transactions-filter.png` — URL-driven filters in action
+All captured at 1440×900 against the MSW mocks on this branch — rerun
+`npm run dev` and visit the paths below to reproduce.
+
+| Path                               | Preview                                                    |
+| ---------------------------------- | ---------------------------------------------------------- |
+| `/en`                              | ![Home](./docs/screenshots/01-home.png)                    |
+| `/en/dashboard`                    | ![Dashboard](./docs/screenshots/02-dashboard.png)          |
+| `/en/dashboard` (dark)             | ![Dashboard — dark](./docs/screenshots/09-dashboard-dark.png) |
+| `/en/blocks`                       | ![Blocks list](./docs/screenshots/03-blocks-list.png)      |
+| `/en/blocks/18946231`              | ![Block details](./docs/screenshots/04-block-details.png)  |
+| `/en/transactions?status=PENDING`  | ![Transactions filter](./docs/screenshots/05-transactions-filter.png) |
+| `/en/tx/<hash>`                    | ![Transaction details](./docs/screenshots/06-tx-details.png) |
+| `/en/wallets/<address>`            | ![Wallet](./docs/screenshots/07-wallet.png)                |
+| `⌘K` palette on dashboard          | ![Command palette](./docs/screenshots/08-command-palette.png) |
 
 ---
 
