@@ -1,44 +1,60 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export type AsyncState<T> = {
   data: T | null;
   error: Error | null;
   loading: boolean;
+  /** Manually re-run the loader without resetting data (keeps previous data visible). */
+  refresh: () => void;
 };
 
 export function useAsyncResource<T>(
   load: () => Promise<T>,
   deps: readonly unknown[],
 ): AsyncState<T> {
-  const [state, setState] = useState<AsyncState<T>>({
-    data: null,
-    error: null,
-    loading: true,
-  });
+  const [data, setData] = useState<T | null>(null);
+  const [error, setError] = useState<Error | null>(null);
+  const [loading, setLoading] = useState(true);
+  const cancelledRef = useRef(false);
+  const runId = useRef(0);
+
+  const run = useCallback(
+    (options: { resetData: boolean }) => {
+      const id = ++runId.current;
+      if (options.resetData) {
+        setData(null);
+      }
+      setError(null);
+      setLoading(true);
+      load()
+        .then((next) => {
+          if (cancelledRef.current || runId.current !== id) return;
+          setData(next);
+          setLoading(false);
+        })
+        .catch((err: unknown) => {
+          if (cancelledRef.current || runId.current !== id) return;
+          setError(err instanceof Error ? err : new Error(String(err)));
+          setLoading(false);
+        });
+    },
+    [load],
+  );
 
   useEffect(() => {
-    let cancelled = false;
-    setState((s) => ({ ...s, loading: true, error: null }));
-    load()
-      .then((data) => {
-        if (cancelled) return;
-        setState({ data, error: null, loading: false });
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        setState({
-          data: null,
-          error: err instanceof Error ? err : new Error(String(err)),
-          loading: false,
-        });
-      });
+    cancelledRef.current = false;
+    run({ resetData: true });
     return () => {
-      cancelled = true;
+      cancelledRef.current = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
-  return state;
+  const refresh = useCallback(() => {
+    run({ resetData: false });
+  }, [run]);
+
+  return { data, error, loading, refresh };
 }

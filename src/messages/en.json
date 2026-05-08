@@ -35,6 +35,7 @@
   },
   "dashboard": {
     "title": "Dashboard",
+    "live": "Live",
     "downloadReport": "Download report",
     "loadError": "Failed to load data.",
     "kpi": {
@@ -80,6 +81,15 @@
     "invalid": "Unknown input. Try a block number, 0x-prefixed tx hash or address.",
     "notFound": "No match found for {query}.",
     "hint": "block number, tx hash or 0x… address"
+  },
+  "commandPalette": {
+    "title": "Command palette",
+    "placeholder": "Type a command or search…",
+    "empty": "No results.",
+    "navigation": "Navigation",
+    "goto": "Go to",
+    "recent": "Recent searches",
+    "preferences": "Preferences"
   },
   "breadcrumbs": {
     "home": "Home",
@@ -172,6 +182,18 @@
     "copied": "Copied",
     "retry": "Retry",
     "unknown": "—"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "We couldn't find what you were looking for. The resource may have been moved or the link may be incorrect.",
+    "home": "Back to home",
+    "browseBlocks": "Browse blocks"
+  },
+  "error": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred while rendering this page.",
+    "reference": "Reference",
+    "retry": "Try again"
   },
   "status": {
     "PENDING": "Pending",

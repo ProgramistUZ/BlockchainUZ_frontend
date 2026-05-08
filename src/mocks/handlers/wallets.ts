@@ -1,7 +1,9 @@
 import { http, HttpResponse } from "msw";
-import { wallets } from "../fixtures/wallets";
+import { wallets } from "../fixtures";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api";
+import { env } from "@/lib/env";
+
+const API = env.NEXT_PUBLIC_API_URL;
 
 export const walletHandlers = [
   // GET /api/wallets/:address

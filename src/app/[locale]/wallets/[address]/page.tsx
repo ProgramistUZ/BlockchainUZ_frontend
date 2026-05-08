@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, use } from "react";
+import { useCallback, use, useEffect } from "react";
+import { notFound } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import {
@@ -19,7 +20,7 @@ import { CopyButton } from "@/components/copy-button";
 import { StatusBadge } from "@/components/status-badge";
 import { ErrorState, EmptyState } from "@/components/status-states";
 import { useAsyncResource } from "@/hooks/use-async-resource";
-import { getWallet, getWalletTransactions } from "@/services/api";
+import { ApiError, getWallet, getWalletTransactions } from "@/services/api";
 import type { Transaction } from "@/types/api";
 import {
   formatEth,
@@ -49,6 +50,10 @@ export default function WalletPage({ params }: PageProps) {
   const { data: wallet, error: walletErr, loading: walletLoading } =
     useAsyncResource(loadWallet, [address]);
   const { data: txs, error: txErr } = useAsyncResource(loadTx, [address]);
+
+  useEffect(() => {
+    if (walletErr instanceof ApiError && walletErr.isNotFound) notFound();
+  }, [walletErr]);
 
   const columns: DataTableColumn<Transaction>[] = [
     {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { Link } from "@/i18n/navigation";
@@ -12,6 +12,7 @@ import { HashLink } from "@/components/hash-link";
 import { StatusBadge } from "@/components/status-badge";
 import { ErrorState } from "@/components/status-states";
 import { useAsyncResource } from "@/hooks/use-async-resource";
+import { useInterval } from "@/hooks/use-interval";
 import { getBlocks, getTransactions } from "@/services/api";
 import type { Block, Transaction } from "@/types/api";
 import { Download } from "lucide-react";
@@ -59,8 +60,24 @@ export default function DashboardPage() {
     return { blocks: b.content, transactions: tx.content };
   }, []);
 
-  const { data, error } = useAsyncResource(load, []);
+  const { data, error, refresh } = useAsyncResource(load, []);
   const kpi = data ? computeKpi(data) : null;
+
+  useInterval(refresh, 12_000);
+
+  const lastSeenBlock = useRef<number | null>(null);
+  const [pulse, setPulse] = useState(false);
+
+  useEffect(() => {
+    if (!data || data.blocks.length === 0) return;
+    const newest = data.blocks[0]!.number;
+    if (lastSeenBlock.current !== null && newest > lastSeenBlock.current) {
+      setPulse(true);
+      const id = window.setTimeout(() => setPulse(false), 1500);
+      return () => window.clearTimeout(id);
+    }
+    lastSeenBlock.current = newest;
+  }, [data]);
 
   const chartData =
     data?.blocks.slice(0, 12).map((b) => ({
@@ -139,7 +156,10 @@ export default function DashboardPage() {
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6">
       <div className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+          <LiveBadge pulse={pulse} label={t("live")} />
+        </div>
         <Button
           variant="outline"
           size="default"
@@ -309,6 +329,28 @@ export default function DashboardPage() {
         </p>
       )}
     </div>
+  );
+}
+
+function LiveBadge({ pulse, label }: { pulse: boolean; label: string }) {
+  return (
+    <span
+      aria-live="polite"
+      className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-xs font-medium uppercase tracking-wider text-emerald-600 dark:text-emerald-400"
+    >
+      <span className="relative flex size-1.5">
+        <span
+          className={
+            pulse
+              ? "absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-75"
+              : "hidden"
+          }
+          aria-hidden="true"
+        />
+        <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
+      </span>
+      {label}
+    </span>
   );
 }
 

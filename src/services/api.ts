@@ -7,7 +7,23 @@ import type {
   Wallet,
 } from "@/types/api";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api";
+import { env } from "@/lib/env";
+
+const API_URL = env.NEXT_PUBLIC_API_URL;
+
+export class ApiError extends Error {
+  readonly status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+
+  get isNotFound(): boolean {
+    return this.status === 404;
+  }
+}
 
 export async function apiFetch<T>(
   path: string,
@@ -19,8 +35,8 @@ export async function apiFetch<T>(
   });
 
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ message: res.statusText }));
-    throw new Error(error.message ?? `API error: ${res.status}`);
+    const body = await res.json().catch(() => ({ message: res.statusText }));
+    throw new ApiError(res.status, body.message ?? `API error: ${res.status}`);
   }
 
   return res.json() as Promise<T>;

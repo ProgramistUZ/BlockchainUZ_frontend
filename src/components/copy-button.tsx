@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +20,7 @@ export function CopyButton({ value, className }: Props) {
     try {
       await navigator.clipboard.writeText(value);
       setCopied(true);
+      toast.success(t("copied"), { description: value });
       window.setTimeout(() => setCopied(false), 1500);
     } catch {
       // Clipboard unavailable (e.g. insecure context) — silently ignore.

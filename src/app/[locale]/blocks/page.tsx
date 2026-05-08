@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
+import { useRouter, usePathname } from "@/i18n/navigation";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -20,18 +22,30 @@ import { getBlocks } from "@/services/api";
 import type { Block } from "@/types/api";
 import { formatInt, formatRelative } from "@/lib/format";
 
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 150;
 
 export default function BlocksPage() {
   const t = useTranslations("blocks");
   const tb = useTranslations("breadcrumbs");
   const locale = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
+  const urlParams = useSearchParams();
+  const page = Math.max(0, Number(urlParams.get("page") ?? 0) - 1);
 
   const load = useCallback(
     () => getBlocks({ page: 0, size: PAGE_SIZE }).then((r) => r.content),
     [],
   );
   const { data, error, loading } = useAsyncResource(load, []);
+
+  function handlePageChange(next: number) {
+    const q = new URLSearchParams(urlParams.toString());
+    if (next <= 0) q.delete("page");
+    else q.set("page", String(next + 1));
+    const qs = q.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname);
+  }
 
   const columns: DataTableColumn<Block>[] = [
     {
@@ -110,6 +124,8 @@ export default function BlocksPage() {
               pageSize={20}
               rowKey={(b) => b.hash}
               columns={columns}
+              page={page}
+              onPageChange={handlePageChange}
             />
           </CardContent>
         </Card>

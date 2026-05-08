@@ -30,6 +30,12 @@ and **MSW** (Mock Service Worker).
   - 0x-prefixed 40-char hex → navigate to `/wallets/<address>`
   - 0x-prefixed 64-char hex → `/search` resolves block/tx in parallel, then redirects
   - Anything else → `/search` with a helpful message
+- **Command palette** — `⌘K` / `Ctrl+K` opens a cmdk palette with navigation,
+  recent searches (localStorage) and theme/locale switching.
+- **Keyboard shortcut** — `/` focuses the global search from anywhere.
+- **Live dashboard** — polls every 12 s, pauses when the tab is hidden, pulses
+  a live badge when a new block lands.
+- **Toast feedback** — sonner-powered confirmations (e.g. "Copied").
 - **i18n** — Polish (default) and English, all copy lives in `src/messages/*.json`.
 - **Theming** — light/dark/system via `next-themes`.
 - **Accessibility** — semantic landmarks, `aria-current` on nav, breadcrumbs on every sub-page,
@@ -86,8 +92,20 @@ npm start
 
 ```bash
 npm run lint          # eslint
-npx tsc --noEmit      # typescript
+npm run typecheck     # tsc --noEmit
 ```
+
+### Tests
+
+```bash
+npm test              # vitest unit tests
+npm run test:watch    # vitest watch mode
+npm run test:coverage # unit coverage (v8) → ./coverage
+npm run test:e2e      # playwright — auto-starts dev server
+```
+
+Unit tests live next to the code they cover (`*.test.ts`). Playwright specs live
+in `e2e/` and drive a real browser against `npm run dev`.
 
 ---
 
@@ -95,10 +113,15 @@ npx tsc --noEmit      # typescript
 
 All runtime config is pulled from `.env.local` (git-ignored).
 
-| Variable              | Default                        | Notes                                                                     |
-| --------------------- | ------------------------------ | ------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_API_URL` | `http://localhost:8080/api`    | Backend base URL. MSW intercepts this in the browser when enabled.        |
-| `NEXT_PUBLIC_USE_MOCKS` | `true`                         | When `true`, the MSW service worker is registered on client startup.      |
+| Variable                | Default                        | Notes                                                                      |
+| ----------------------- | ------------------------------ | -------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_API_URL`   | `http://localhost:8080/api`    | Backend base URL. MSW intercepts this in the browser when enabled.         |
+| `NEXT_PUBLIC_USE_MOCKS` | `false`                        | When `true`, the MSW service worker is registered on client startup.       |
+| `NEXT_PUBLIC_APP_NAME`  | `BlockchainUZ`                 | Reserved for future branding overrides.                                    |
+| `NEXT_PUBLIC_CHAOS`     | `false`                        | When `true`, list endpoints return a 500 ~10 % of the time — demos error UX. |
+
+Values are parsed with zod at boot (`src/lib/env.ts`) — a misconfigured
+environment fails fast with a pointer to this table instead of crashing later.
 
 > `NEXT_PUBLIC_` vars are inlined at build time. Change them before `npm run build` for prod
 > deployments that should talk to the real backend.
@@ -133,20 +156,25 @@ src/
 │   ├── navbar.tsx                  # Top nav with smart search
 │   ├── footer.tsx
 │   ├── search-box.tsx              # Classifies input & routes
+│   ├── command-palette.tsx         # ⌘K / Ctrl+K palette
 │   ├── hash-link.tsx               # Truncated hash with tooltip + deep link
-│   ├── copy-button.tsx
+│   ├── copy-button.tsx             # Clipboard + sonner toast
 │   ├── status-badge.tsx
 │   ├── status-states.tsx           # ErrorState + EmptyState
-│   ├── data-table.tsx              # Sortable paginated table
+│   ├── data-table.tsx              # Sortable table, controlled/uncontrolled pagination
 │   ├── language-switcher.tsx
 │   ├── theme-provider.tsx
 │   ├── theme-toggle.tsx
 │   └── msw-provider.tsx            # Client-side MSW bootstrap
 ├── hooks/
-│   └── use-async-resource.ts       # loading / data / error state hook
+│   ├── use-async-resource.ts       # loading / data / error / refresh
+│   ├── use-interval.ts             # Visibility-aware polling
+│   └── use-keyboard-shortcut.ts    # Global key handlers
 ├── lib/
+│   ├── env.ts                      # Zod-validated env vars
 │   ├── search.ts                   # classifySearch / routeForSearch
 │   ├── format.ts                   # locale-aware number/date helpers
+│   ├── recent-searches.ts          # localStorage-backed ring buffer
 │   └── utils.ts                    # cn()
 ├── i18n/
 │   ├── routing.ts                  # locales = [pl, en], defaultLocale = pl
@@ -156,8 +184,11 @@ src/
 │   └── en.json
 ├── mocks/
 │   ├── browser.ts
+│   ├── chaos.ts                    # Opt-in 500 injection
 │   ├── handlers/                   # blocks / transactions / wallets
-│   └── fixtures/                   # seed data
+│   └── fixtures/
+│       ├── generate.ts             # Deterministic PRNG generator
+│       └── index.ts                # Loads and re-exports blocks/tx/wallets
 ├── services/
 │   └── api.ts                      # Typed fetch wrappers for all endpoints
 ├── types/
@@ -166,6 +197,14 @@ src/
 ```
 
 ---
+
+## CI
+
+`.github/workflows/ci.yml` runs on every push + PR to `main`/`master`:
+
+- **`quality`** — install, lint, typecheck, unit tests, production build
+- **`e2e`** — (depends on `quality`) installs Chromium and runs Playwright;
+  uploads `playwright-report` as an artifact on failure
 
 ## API mocking
 
@@ -184,6 +223,16 @@ MSW handlers live in `src/mocks/handlers/` and emulate the backend exactly:
 
 The service worker is registered by `src/components/msw-provider.tsx` and is controlled by
 `NEXT_PUBLIC_USE_MOCKS`. Set that flag to `false` to talk to the real backend instead.
+
+Seed data is generated deterministically at module load by
+`src/mocks/fixtures/generate.ts` — a seeded Mulberry32 PRNG produces 150 blocks,
+500+ transactions and 30 wallets, balances computed from the transaction graph
+so they stay internally consistent. Adjust counts via the `generateFixtures()`
+options.
+
+To demo error states live, flip `NEXT_PUBLIC_CHAOS=true` — list endpoints will
+return a 500 ~10 % of the time and the UI's `ErrorState`, `error.tsx` boundary
+and toast paths will all render in realistic conditions.
 
 See also: the shared Postman collection in `../BlockchainUZ_backend/`.
 

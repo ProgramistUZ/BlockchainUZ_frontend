@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, use } from "react";
+import { useCallback, use, useEffect } from "react";
+import { notFound } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "@/i18n/navigation";
@@ -21,7 +22,7 @@ import { CopyButton } from "@/components/copy-button";
 import { StatusBadge } from "@/components/status-badge";
 import { ErrorState, EmptyState } from "@/components/status-states";
 import { useAsyncResource } from "@/hooks/use-async-resource";
-import { getBlockByHash, getBlockByNumber } from "@/services/api";
+import { ApiError, getBlockByHash, getBlockByNumber } from "@/services/api";
 import type { Block, Transaction } from "@/types/api";
 import {
   formatEth,
@@ -50,6 +51,10 @@ export default function BlockDetailsPage({ params }: PageProps) {
   }, [id]);
 
   const { data: block, error, loading } = useAsyncResource(load, [id]);
+
+  useEffect(() => {
+    if (error instanceof ApiError && error.isNotFound) notFound();
+  }, [error]);
 
   const txColumns: DataTableColumn<Transaction>[] = [
     {

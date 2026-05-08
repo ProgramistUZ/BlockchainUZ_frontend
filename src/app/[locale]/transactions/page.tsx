@@ -76,6 +76,15 @@ export default function TransactionsPage() {
   const urlParams = useSearchParams();
   const applied = useMemo(() => readFilters(urlParams), [urlParams]);
   const [draft, setDraft] = useState<Filters>(applied);
+  const page = Math.max(0, Number(urlParams.get("page") ?? 0) - 1);
+
+  function handlePageChange(next: number) {
+    const q = new URLSearchParams(urlParams.toString());
+    if (next <= 0) q.delete("page");
+    else q.set("page", String(next + 1));
+    const qs = q.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname);
+  }
 
   const load = useCallback(() => {
     const blockNumber = applied.blockNumber
@@ -95,6 +104,7 @@ export default function TransactionsPage() {
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    // Reset page to 1 when filters change so results don't land on an empty page.
     const params = writeFilters(draft);
     const qs = params.toString();
     router.push(qs ? `${pathname}?${qs}` : pathname);
@@ -287,6 +297,8 @@ export default function TransactionsPage() {
               pageSize={20}
               rowKey={(tx) => tx.hash}
               columns={columns}
+              page={page}
+              onPageChange={handlePageChange}
             />
           </CardContent>
         </Card>

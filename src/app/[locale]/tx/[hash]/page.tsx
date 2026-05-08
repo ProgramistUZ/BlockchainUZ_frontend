@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, use } from "react";
+import { useCallback, use, useEffect } from "react";
+import { notFound } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import {
@@ -17,7 +18,7 @@ import { CopyButton } from "@/components/copy-button";
 import { StatusBadge } from "@/components/status-badge";
 import { ErrorState, EmptyState } from "@/components/status-states";
 import { useAsyncResource } from "@/hooks/use-async-resource";
-import { getTransactionByHash } from "@/services/api";
+import { ApiError, getTransactionByHash } from "@/services/api";
 import {
   formatEth,
   formatInt,
@@ -37,6 +38,10 @@ export default function TransactionDetailsPage({ params }: PageProps) {
 
   const load = useCallback(() => getTransactionByHash(hash), [hash]);
   const { data: tx, error, loading } = useAsyncResource(load, [hash]);
+
+  useEffect(() => {
+    if (error instanceof ApiError && error.isNotFound) notFound();
+  }, [error]);
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6">

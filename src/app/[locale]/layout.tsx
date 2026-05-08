@@ -8,6 +8,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { MSWProvider } from "@/components/msw-provider";
+import { Toaster } from "@/components/ui/sonner";
+import { CommandPalette } from "@/components/command-palette";
 import "../globals.css";
 
 const geistSans = Geist({
@@ -62,6 +64,8 @@ export default async function LocaleLayout({
                 <Navbar />
                 <main className="flex-1">{children}</main>
                 <Footer />
+                <CommandPalette />
+                <Toaster position="bottom-right" />
               </TooltipProvider>
             </MSWProvider>
           </NextIntlClientProvider>

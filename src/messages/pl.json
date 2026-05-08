@@ -35,6 +35,7 @@
   },
   "dashboard": {
     "title": "Panel",
+    "live": "Na żywo",
     "downloadReport": "Pobierz raport",
     "loadError": "Nie udało się wczytać danych.",
     "kpi": {
@@ -80,6 +81,15 @@
     "invalid": "Nieznane zapytanie. Podaj numer bloku, hash transakcji (0x…) lub adres.",
     "notFound": "Brak wyników dla {query}.",
     "hint": "numer bloku, hash tx lub adres 0x…"
+  },
+  "commandPalette": {
+    "title": "Paleta poleceń",
+    "placeholder": "Wpisz polecenie lub zapytanie…",
+    "empty": "Brak wyników.",
+    "navigation": "Nawigacja",
+    "goto": "Przejdź do",
+    "recent": "Ostatnie wyszukiwania",
+    "preferences": "Ustawienia"
   },
   "breadcrumbs": {
     "home": "Start",
@@ -172,6 +182,18 @@
     "copied": "Skopiowano",
     "retry": "Ponów",
     "unknown": "—"
+  },
+  "notFound": {
+    "title": "Nie znaleziono strony",
+    "description": "Nie udało się znaleźć tego, czego szukasz. Zasób mógł zostać przeniesiony albo link jest nieprawidłowy.",
+    "home": "Wróć na stronę główną",
+    "browseBlocks": "Przeglądaj bloki"
+  },
+  "error": {
+    "title": "Coś poszło nie tak",
+    "description": "Podczas renderowania tej strony wystąpił nieoczekiwany błąd.",
+    "reference": "Identyfikator",
+    "retry": "Spróbuj ponownie"
   },
   "status": {
     "PENDING": "Oczekująca",

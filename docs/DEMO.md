@@ -95,13 +95,25 @@ the API mock (so the demo is not coupled to the backend being up).
 - Add a block number filter (`18946229`) + Apply → table shrinks in-place.
 - Reset.
 
-### Scene 7 — Theme + i18n (30 s)
-- Toggle dark mode in the navbar.
-- Switch to `pl` → everything translates instantly (page, breadcrumbs, status badges, etc).
+### Scene 7 — Command palette + power-user UX (60 s)
+- Hit **`⌘K`** (or `Ctrl+K` on Linux/Windows) — palette opens.
+  - Type `bloc` → Navigation → Blocks highlights. Enter.
+  - Reopen with `⌘K`, arrow-down to **Recent searches** (from scene 2). Hit Enter.
+- Press **`/`** anywhere on the page → the global search box gets focused.
 
-### Scene 8 — Wrap (30 s)
-- "Under the hood: typed API client (`src/services/api.ts`) → MSW handlers (`src/mocks/handlers/`)
-  → shared UI primitives (Base UI + shadcn). Full type-safety from response to render."
+### Scene 8 — Theme + i18n (30 s)
+- Toggle dark mode in the navbar.
+- Switch to `pl` → everything translates instantly (page, breadcrumbs, status
+  badges, palette labels, etc).
+
+### Scene 9 — Wrap (30 s)
+- "Under the hood: typed API client + `ApiError` class (`src/services/api.ts`)
+  → env parsed with zod at boot (`src/lib/env.ts`) → MSW handlers with optional
+  chaos mode (`src/mocks/handlers/`) → deterministic PRNG seeds 150 blocks + 500
+  transactions (`src/mocks/fixtures/generate.ts`) → shared UI primitives.
+  Full type-safety from response to render."
+- Covered by **23 unit tests** (Vitest + RTL) and **4 e2e specs** (Playwright) —
+  wired into GitHub Actions.
 - Hand over for Q&A.
 
 ---
@@ -113,20 +125,21 @@ block numbers, 42-char checksummed addresses, 64-char tx hashes, mixed statuses.
 
 | Dataset          | Size | Notes                                                           |
 | ---------------- | ---- | --------------------------------------------------------------- |
-| `blocks`         | 20   | Block numbers 18,946,212 → 18,946,231, timestamps 12 s apart    |
-| `transactions`   | 45   | Mix of CONFIRMED / PENDING / FAILED across the 20 blocks        |
-| `wallets`        | 10   | alice…judy, balances spanning 0.03 → 2,531 ETH                  |
+| `blocks`         | 150  | Block numbers 18,946,082 → 18,946,231, 12 s apart               |
+| `transactions`   | ~500 | Weighted mix of CONFIRMED (82 %) / PENDING (10 %) / FAILED (8 %) |
+| `wallets`        | 30   | `alice`…`faith`, balances derived from the transaction graph     |
 
-**Useful records to demo:**
+All data is generated deterministically (Mulberry32 PRNG, seed=`0x424c4f43`) —
+rerunning the dev server produces byte-identical fixtures, so the demo path is
+reproducible and the seed-data cheat sheet below stays accurate.
 
-| What                    | Value                                                               |
-| ----------------------- | ------------------------------------------------------------------- |
-| Latest block            | `18946231` (5 txs, one PENDING)                                     |
-| Block with most txs     | `18946229` (7 txs — nice chart spike)                               |
-| Wallet with most txs    | `alice` = `0x742d35Cc6634C0532925a3b844Bc9e7595f2bD28` (12 txs)     |
-| Wallet with dust        | `judy` = `0xa0Ee7A142d267C1f36714E4a8F75612F20a79720` (0.029 ETH)   |
-| Failed tx               | `0xbb03c9d0…5010203` (block 18946230, dave → eve, 0.15 ETH)         |
-| Pending tx              | `0xaa05f6a7…02030405` (block 18946231, heidi → ivan, 12 ETH)        |
+**Useful records to demo:** open `/en/blocks` and the latest block is the
+highest-numbered one (typically with 3–10 txs). The palette's **Recent
+searches** grows as you navigate; paste any wallet from the `/en/transactions`
+list into the search box to land on its page.
+
+To demo error states, restart the dev server with
+`NEXT_PUBLIC_CHAOS=true npm run dev` — ~10 % of list requests then fail.
 
 ---
 

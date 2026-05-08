@@ -29,7 +29,7 @@ export default function Home() {
           <p className="max-w-xl text-base text-muted-foreground sm:text-lg">
             {t("description")}
           </p>
-          <SearchBox className="max-w-xl" />
+          <SearchBox className="max-w-xl" primary />
           <div className="flex items-center gap-3">
             <Button size="lg" nativeButton={false} render={<Link href="/dashboard" />}>
               {tn("dashboard")}
