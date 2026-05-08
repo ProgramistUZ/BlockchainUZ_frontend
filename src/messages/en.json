@@ -14,11 +14,62 @@
     "toggleTheme": "Toggle theme"
   },
   "nav": {
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "menu": "Menu",
+    "openMenu": "Open menu",
+    "language": "Language"
   },
   "language": {
     "switchLanguage": "Language",
     "pl": "Polski",
     "en": "English"
+  },
+  "dataTable": {
+    "empty": "No data",
+    "previous": "Previous page",
+    "next": "Next page",
+    "pageOf": "Page {page} of {total}",
+    "range": "{from}–{to} of {total}"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "downloadReport": "Download report",
+    "loadError": "Failed to load data.",
+    "kpi": {
+      "label": "Key metrics",
+      "processedBlocks": "Processed blocks",
+      "sinceBlock": "from",
+      "totalTransactions": "Total transactions",
+      "avgPerBlock": "avg {n}/block",
+      "avgGas": "Average gas usage",
+      "unitsPerTx": "units/tx",
+      "totalEth": "Total ETH value",
+      "ethTestnet": "eth (testnet)"
+    },
+    "latestBlocks": {
+      "title": "Latest blocks",
+      "number": "block nr",
+      "hash": "hash",
+      "tx": "tx"
+    },
+    "txPerBlock": {
+      "title": "Transactions per block"
+    },
+    "summary": {
+      "title": "Summary chart",
+      "network": "Network",
+      "transactions": "Transactions",
+      "sentToday": "Sent today",
+      "blocks": "Blocks",
+      "avgFee": "Average fee"
+    },
+    "transactions": {
+      "title": "Transactions",
+      "hash": "tx hash",
+      "from": "from",
+      "to": "to",
+      "value": "value (eth)",
+      "status": "status"
+    }
   }
 }

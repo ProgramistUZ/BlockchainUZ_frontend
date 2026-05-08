@@ -14,11 +14,62 @@
     "toggleTheme": "Zmień motyw"
   },
   "nav": {
-    "dashboard": "Panel"
+    "dashboard": "Panel",
+    "menu": "Menu",
+    "openMenu": "Otwórz menu",
+    "language": "Język"
   },
   "language": {
     "switchLanguage": "Język",
     "pl": "Polski",
     "en": "English"
+  },
+  "dataTable": {
+    "empty": "Brak danych",
+    "previous": "Poprzednia strona",
+    "next": "Następna strona",
+    "pageOf": "Strona {page} z {total}",
+    "range": "{from}–{to} z {total}"
+  },
+  "dashboard": {
+    "title": "Panel",
+    "downloadReport": "Pobierz raport",
+    "loadError": "Nie udało się wczytać danych.",
+    "kpi": {
+      "label": "Kluczowe wskaźniki",
+      "processedBlocks": "Przetworzone bloki",
+      "sinceBlock": "od",
+      "totalTransactions": "Łączne transakcje",
+      "avgPerBlock": "średnio {n}/blok",
+      "avgGas": "Średnie zużycie gasu",
+      "unitsPerTx": "jednostek/tx",
+      "totalEth": "Łączna wartość ETH",
+      "ethTestnet": "eth (testnet)"
+    },
+    "latestBlocks": {
+      "title": "Ostatnie bloki",
+      "number": "nr bloku",
+      "hash": "hash",
+      "tx": "tx"
+    },
+    "txPerBlock": {
+      "title": "Transakcje na blok"
+    },
+    "summary": {
+      "title": "Wykres podsumowujący",
+      "network": "Sieć",
+      "transactions": "Transakcje",
+      "sentToday": "Wysłane dziś",
+      "blocks": "Bloki",
+      "avgFee": "Średnia opłata"
+    },
+    "transactions": {
+      "title": "Transakcje",
+      "hash": "hash tx",
+      "from": "nadawca",
+      "to": "odbiorca",
+      "value": "wartość (eth)",
+      "status": "status"
+    }
   }
 }

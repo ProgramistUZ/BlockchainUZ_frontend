@@ -1,10 +1,7 @@
 import type {
-  AuthResponse,
   Block,
-  LoginRequest,
   PaginatedResponse,
   PaginationParams,
-  RegisterRequest,
   Transaction,
   TransactionSearchParams,
   Wallet,
@@ -78,20 +75,4 @@ export function searchTransactions(params: TransactionSearchParams = {}) {
 
 export function getWallet(address: string) {
   return apiFetch<Wallet>(`/wallets/${address}`);
-}
-
-// ── Auth ────────────────────────────────────────────────────────────
-
-export function login(credentials: LoginRequest) {
-  return apiFetch<AuthResponse>("/auth/login", {
-    method: "POST",
-    body: JSON.stringify(credentials),
-  });
-}
-
-export function register(data: RegisterRequest) {
-  return apiFetch<AuthResponse>("/auth/register", {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
 }

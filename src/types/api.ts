@@ -28,33 +28,6 @@ export interface Wallet {
   lastSeen: string; // ISO 8601
 }
 
-// ── Auth ────────────────────────────────────────────────────────────
-
-export interface User {
-  id: string;
-  email: string;
-  username: string;
-  role: UserRole;
-}
-
-export type UserRole = "USER" | "ADMIN";
-
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface RegisterRequest {
-  email: string;
-  username: string;
-  password: string;
-}
-
-export interface AuthResponse {
-  token: string;
-  user: User;
-}
-
 // ── Generic response wrappers ──────────────────────────────────────
 
 export interface PaginatedResponse<T> {
