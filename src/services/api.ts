@@ -76,3 +76,10 @@ export function searchTransactions(params: TransactionSearchParams = {}) {
 export function getWallet(address: string) {
   return apiFetch<Wallet>(`/wallets/${address}`);
 }
+
+export function getWalletTransactions(
+  address: string,
+  params: PaginationParams = {},
+) {
+  return searchTransactions({ address, ...params });
+}
