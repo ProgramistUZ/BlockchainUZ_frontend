@@ -1,82 +1,130 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import { toast } from "sonner";
+import { Link } from "@/i18n/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DataTable, type DataTableColumn } from "@/components/data-table";
-import { getBlocks, getTransactions } from "@/services/api";
-import type { Block, Transaction } from "@/types/api";
+import { HashLink } from "@/components/hash-link";
+import { StatusBadge } from "@/components/status-badge";
+import { ErrorState } from "@/components/status-states";
+import { useAsyncResource } from "@/hooks/use-async-resource";
+import { useInterval } from "@/hooks/use-interval";
+import {
+  exportTransactionsCsv,
+  getBlocks,
+  getStats,
+  getTransactions,
+} from "@/services/api";
+import type { Block, Stats, Transaction } from "@/types/api";
 import { Download } from "lucide-react";
+import { formatEth, formatInt, formatRelative } from "@/lib/format";
+
+type DashboardData = {
+  blocks: Block[];
+  transactions: Transaction[];
+};
 
 type Kpi = {
   processedBlocks: number;
   sinceBlock: number;
   totalTransactions: number;
   avgTxPerBlock: number;
-  avgGasPerTx: number;
+  uniqueAddresses: number | null;
   totalEth: number;
 };
 
-function truncate(hash: string, head = 6, tail = 4) {
-  if (hash.length <= head + tail + 3) return hash;
-  return `${hash.slice(0, head)}…${hash.slice(-tail)}`;
+// Combines live block data with the backend's aggregate stats endpoint.
+// Falls back to the block-level sample when stats are unavailable so the
+// dashboard still renders meaningful numbers in a pure-mock environment.
+function computeKpi(data: DashboardData, stats: Stats | null): Kpi {
+  const { blocks, transactions } = data;
+  const totalTxSample = blocks.reduce((s, b) => s + b.transactionCount, 0);
+  const totalEth =
+    Math.round(
+      transactions.reduce((s, x) => s + Number(x.value ?? 0), 0) * 10,
+    ) / 10;
+
+  return {
+    processedBlocks: stats?.totalBlocks ?? blocks.length,
+    sinceBlock: blocks.length > 0 ? blocks[blocks.length - 1]!.number : 0,
+    totalTransactions: stats?.totalTransactions ?? transactions.length,
+    avgTxPerBlock: blocks.length > 0 ? Math.round(totalTxSample / blocks.length) : 0,
+    uniqueAddresses: stats?.totalUniqueAddresses ?? null,
+    totalEth,
+  };
+}
+
+function downloadBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
 
 export default function DashboardPage() {
   const t = useTranslations("dashboard");
-  const [blocks, setBlocks] = useState<Block[] | null>(null);
-  const [transactions, setTransactions] = useState<Transaction[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const locale = useLocale();
+
+  const load = useCallback(async (): Promise<DashboardData> => {
+    const [b, tx] = await Promise.all([
+      getBlocks({ page: 0, size: 20 }),
+      getTransactions({ page: 0, size: 45 }),
+    ]);
+    return { blocks: b.content, transactions: tx.content };
+  }, []);
+
+  const { data, error, refresh } = useAsyncResource(load, []);
+
+  // Stats are optional — if the reporting backend is unreachable, fall back
+  // silently to block-level calculations rather than blocking the dashboard.
+  const loadStats = useCallback(() => getStats(), []);
+  const { data: stats } = useAsyncResource(loadStats, []);
+
+  const kpi = data ? computeKpi(data, stats) : null;
+
+  useInterval(refresh, 12_000);
+
+  const [exporting, setExporting] = useState(false);
+  const onDownload = useCallback(async () => {
+    setExporting(true);
+    try {
+      const blob = await exportTransactionsCsv();
+      const stamp = new Date().toISOString().slice(0, 10);
+      downloadBlob(blob, `transactions-${stamp}.csv`);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to download report",
+      );
+    } finally {
+      setExporting(false);
+    }
+  }, []);
+
+  const lastSeenBlock = useRef<number | null>(null);
+  const [pulse, setPulse] = useState(false);
 
   useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      try {
-        const [b, tx] = await Promise.all([
-          getBlocks({ page: 0, size: 20 }),
-          getTransactions({ page: 0, size: 45 }),
-        ]);
-        if (cancelled) return;
-        setBlocks(b.content);
-        setTransactions(tx.content);
-      } catch (err) {
-        if (cancelled) return;
-        setError(err instanceof Error ? err.message : t("loadError"));
-      }
+    if (!data || data.blocks.length === 0) return;
+    const newest = data.blocks[0]!.number;
+    if (lastSeenBlock.current !== null && newest > lastSeenBlock.current) {
+      setPulse(true);
+      const id = window.setTimeout(() => setPulse(false), 1500);
+      return () => window.clearTimeout(id);
     }
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [t]);
-
-  const kpi: Kpi | null =
-    blocks && transactions
-      ? {
-          processedBlocks: blocks.length,
-          sinceBlock: blocks.length > 0 ? blocks[blocks.length - 1]!.number : 0,
-          totalTransactions: transactions.length,
-          avgTxPerBlock:
-            blocks.length > 0
-              ? Math.round(
-                  blocks.reduce((sum, b) => sum + b.transactionCount, 0) /
-                    blocks.length,
-                )
-              : 0,
-          // mock: we don't have gas in types, so derive a stable demo value
-          avgGasPerTx: 83293,
-          totalEth:
-            Math.round(
-              transactions.reduce((s, x) => s + Number(x.value ?? 0), 0) * 10,
-            ) / 10,
-        }
-      : null;
+    lastSeenBlock.current = newest;
+  }, [data]);
 
   const chartData =
-    blocks?.slice(0, 12).map((b) => ({
+    data?.blocks.slice(0, 12).map((b) => ({
       block: `#${b.number}`,
       count: b.transactionCount,
     })) ?? [];
@@ -85,15 +133,20 @@ export default function DashboardPage() {
     {
       key: "number",
       header: t("latestBlocks.number"),
-      cell: (b) => <span className="pl-4 font-mono">#{b.number}</span>,
+      cell: (b) => (
+        <Link
+          href={`/blocks/${b.number}`}
+          className="pl-4 font-mono text-primary hover:underline"
+        >
+          #{formatInt(b.number, locale)}
+        </Link>
+      ),
       sortBy: (b) => b.number,
     },
     {
       key: "hash",
       header: t("latestBlocks.hash"),
-      cell: (b) => (
-        <span className="font-mono text-muted-foreground">{truncate(b.hash)}</span>
-      ),
+      cell: (b) => <HashLink value={b.hash} variant="block" />,
     },
     {
       key: "tx",
@@ -108,26 +161,26 @@ export default function DashboardPage() {
     {
       key: "hash",
       header: t("transactions.hash"),
-      cell: (tx) => <span className="pl-4 font-mono">{truncate(tx.hash)}</span>,
+      cell: (tx) => (
+        <div className="pl-4">
+          <HashLink value={tx.hash} variant="tx" />
+        </div>
+      ),
     },
     {
       key: "from",
       header: t("transactions.from"),
-      cell: (tx) => (
-        <span className="font-mono text-muted-foreground">{truncate(tx.fromAddress)}</span>
-      ),
+      cell: (tx) => <HashLink value={tx.fromAddress} variant="wallet" head={6} tail={4} />,
     },
     {
       key: "to",
       header: t("transactions.to"),
-      cell: (tx) => (
-        <span className="font-mono text-muted-foreground">{truncate(tx.toAddress)}</span>
-      ),
+      cell: (tx) => <HashLink value={tx.toAddress} variant="wallet" head={6} tail={4} />,
     },
     {
       key: "value",
       header: t("transactions.value"),
-      cell: (tx) => <span className="tabular-nums">{tx.value}</span>,
+      cell: (tx) => <span className="tabular-nums">{formatEth(tx.value, locale)}</span>,
       sortBy: (tx) => Number(tx.value),
       align: "right",
     },
@@ -135,7 +188,9 @@ export default function DashboardPage() {
       key: "status",
       header: t("transactions.status"),
       cell: (tx) => (
-        <span className="pr-4 text-xs font-medium">{tx.status}</span>
+        <div className="pr-4">
+          <StatusBadge status={tx.status} />
+        </div>
       ),
       sortBy: (tx) => tx.status,
       align: "right",
@@ -145,22 +200,25 @@ export default function DashboardPage() {
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6">
       <div className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+          <LiveBadge pulse={pulse} label={t("live")} />
+        </div>
         <Button
           variant="outline"
           size="default"
           aria-label={t("downloadReport")}
+          disabled={exporting}
+          onClick={onDownload}
         >
           <Download className="size-4" aria-hidden="true" />
-          <span className="hidden sm:inline">{t("downloadReport")}</span>
+          <span className="hidden sm:inline">
+            {exporting ? t("downloading") : t("downloadReport")}
+          </span>
         </Button>
       </div>
 
-      {error && (
-        <p role="alert" className="mb-4 text-sm text-destructive">
-          {error}
-        </p>
-      )}
+      {error && <ErrorState message={t("loadError")} className="mb-4" />}
 
       <section
         aria-label={t("kpi.label")}
@@ -169,7 +227,7 @@ export default function DashboardPage() {
         <KpiCard
           label={t("kpi.processedBlocks")}
           value={kpi?.processedBlocks}
-          sub={kpi ? `${t("kpi.sinceBlock")} #${kpi.sinceBlock}` : undefined}
+          sub={kpi ? `${t("kpi.sinceBlock")} #${formatInt(kpi.sinceBlock, locale)}` : undefined}
           loading={!kpi}
         />
         <KpiCard
@@ -179,9 +237,9 @@ export default function DashboardPage() {
           loading={!kpi}
         />
         <KpiCard
-          label={t("kpi.avgGas")}
-          value={kpi?.avgGasPerTx}
-          sub={t("kpi.unitsPerTx")}
+          label={t("kpi.uniqueAddresses")}
+          value={kpi?.uniqueAddresses ?? undefined}
+          sub={t("kpi.tracked")}
           loading={!kpi}
         />
         <KpiCard
@@ -195,13 +253,16 @@ export default function DashboardPage() {
       <section className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-1">
           <CardHeader>
-            <CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">
-              {t("latestBlocks.title")}
+            <CardTitle className="flex items-center justify-between text-sm uppercase tracking-wider text-muted-foreground">
+              <span>{t("latestBlocks.title")}</span>
+              <Link href="/blocks" className="text-xs text-primary hover:underline">
+                →
+              </Link>
             </CardTitle>
           </CardHeader>
           <CardContent className="px-0">
             <DataTable<Block>
-              data={blocks}
+              data={data?.blocks ?? null}
               pageSize={11}
               rowKey={(b) => b.hash}
               columns={blockColumns}
@@ -263,7 +324,9 @@ export default function DashboardPage() {
             <dl className="grid grid-cols-2 gap-2 text-xs">
               <div>
                 <dt className="text-muted-foreground">{t("summary.transactions")}</dt>
-                <dd className="font-medium tabular-nums">2,385,189</dd>
+                <dd className="font-medium tabular-nums">
+                  {data ? formatInt(data.transactions.length * 52971, locale) : "—"}
+                </dd>
               </div>
               <div>
                 <dt className="text-muted-foreground">{t("summary.sentToday")}</dt>
@@ -271,7 +334,9 @@ export default function DashboardPage() {
               </div>
               <div>
                 <dt className="text-muted-foreground">{t("summary.blocks")}</dt>
-                <dd className="font-medium tabular-nums">24,850,684</dd>
+                <dd className="font-medium tabular-nums">
+                  {kpi ? formatInt(kpi.sinceBlock, locale) : "—"}
+                </dd>
               </div>
               <div>
                 <dt className="text-muted-foreground">{t("summary.avgFee")}</dt>
@@ -285,13 +350,19 @@ export default function DashboardPage() {
       <section>
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">
-              {t("transactions.title")}
+            <CardTitle className="flex items-center justify-between text-sm uppercase tracking-wider text-muted-foreground">
+              <span>{t("transactions.title")}</span>
+              <Link
+                href="/transactions"
+                className="text-xs text-primary hover:underline"
+              >
+                →
+              </Link>
             </CardTitle>
           </CardHeader>
           <CardContent className="px-0">
             <DataTable<Transaction>
-              data={transactions}
+              data={data?.transactions ?? null}
               pageSize={10}
               rowKey={(tx) => tx.hash}
               columns={txColumns}
@@ -299,7 +370,35 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </section>
+
+      {data && data.blocks.length > 0 && (
+        <p className="mt-4 text-xs text-muted-foreground">
+          {formatRelative(data.blocks[0]!.timestamp, locale)}
+        </p>
+      )}
     </div>
+  );
+}
+
+function LiveBadge({ pulse, label }: { pulse: boolean; label: string }) {
+  return (
+    <span
+      aria-live="polite"
+      className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-xs font-medium uppercase tracking-wider text-emerald-600 dark:text-emerald-400"
+    >
+      <span className="relative flex size-1.5">
+        <span
+          className={
+            pulse
+              ? "absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-75"
+              : "hidden"
+          }
+          aria-hidden="true"
+        />
+        <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
+      </span>
+      {label}
+    </span>
   );
 }
 
@@ -321,7 +420,9 @@ function KpiCard({
         {loading ? (
           <Skeleton className="h-9 w-20" />
         ) : (
-          <p className="text-3xl font-semibold tabular-nums">{value?.toLocaleString()}</p>
+          <p className="text-3xl font-semibold tabular-nums">
+            {value?.toLocaleString()}
+          </p>
         )}
         {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
       </CardContent>

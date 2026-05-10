@@ -249,3 +249,11 @@ $RECYCLE.BIN/
 /.claude/
 /.omc/
 /.remember/
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
+# Vitest coverage
+/coverage/

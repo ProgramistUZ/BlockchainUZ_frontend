@@ -15,6 +15,8 @@
   },
   "nav": {
     "dashboard": "Panel",
+    "blocks": "Bloki",
+    "transactions": "Transakcje",
     "menu": "Menu",
     "openMenu": "Otwórz menu",
     "language": "Język"
@@ -33,7 +35,9 @@
   },
   "dashboard": {
     "title": "Panel",
+    "live": "Na żywo",
     "downloadReport": "Pobierz raport",
+    "downloading": "Pobieranie…",
     "loadError": "Nie udało się wczytać danych.",
     "kpi": {
       "label": "Kluczowe wskaźniki",
@@ -41,8 +45,8 @@
       "sinceBlock": "od",
       "totalTransactions": "Łączne transakcje",
       "avgPerBlock": "średnio {n}/blok",
-      "avgGas": "Średnie zużycie gasu",
-      "unitsPerTx": "jednostek/tx",
+      "uniqueAddresses": "Unikalne adresy",
+      "tracked": "śledzone on-chain",
       "totalEth": "Łączna wartość ETH",
       "ethTestnet": "eth (testnet)"
     },
@@ -71,5 +75,136 @@
       "value": "wartość (eth)",
       "status": "status"
     }
+  },
+  "search": {
+    "placeholder": "Szukaj po bloku, hashu tx lub adresie",
+    "submit": "Szukaj",
+    "invalid": "Nieznane zapytanie. Podaj numer bloku, hash transakcji (0x…) lub adres.",
+    "notFound": "Brak wyników dla {query}.",
+    "hint": "numer bloku, hash tx lub adres 0x…"
+  },
+  "commandPalette": {
+    "title": "Paleta poleceń",
+    "placeholder": "Wpisz polecenie lub zapytanie…",
+    "empty": "Brak wyników.",
+    "navigation": "Nawigacja",
+    "goto": "Przejdź do",
+    "recent": "Ostatnie wyszukiwania",
+    "preferences": "Ustawienia"
+  },
+  "breadcrumbs": {
+    "home": "Start",
+    "blocks": "Bloki",
+    "transactions": "Transakcje",
+    "wallets": "Portfele",
+    "search": "Szukaj"
+  },
+  "blocks": {
+    "title": "Bloki",
+    "subtitle": "Ostatnie {n} bloków z sieci.",
+    "columns": {
+      "number": "Blok",
+      "hash": "Hash",
+      "timestamp": "Czas",
+      "tx": "Tx",
+      "parent": "Rodzic"
+    },
+    "loadError": "Nie udało się wczytać bloków."
+  },
+  "blockDetails": {
+    "title": "Blok #{number}",
+    "notFound": "Nie znaleziono bloku.",
+    "loadError": "Nie udało się wczytać bloku.",
+    "fields": {
+      "number": "Numer bloku",
+      "hash": "Hash",
+      "parent": "Hash rodzica",
+      "timestamp": "Znacznik czasu",
+      "age": "Wiek",
+      "txCount": "Liczba transakcji"
+    },
+    "prev": "Poprzedni blok",
+    "next": "Następny blok",
+    "txTitle": "Transakcje w bloku",
+    "noTx": "Brak transakcji w tym bloku."
+  },
+  "transactions": {
+    "title": "Transakcje",
+    "subtitle": "Szukaj i filtruj transakcje w sieci.",
+    "filters": {
+      "hash": "Hash transakcji",
+      "address": "Adres (nadawca/odbiorca)",
+      "blockNumber": "Numer bloku",
+      "status": "Status",
+      "allStatuses": "Wszystkie statusy",
+      "apply": "Zastosuj",
+      "reset": "Wyczyść"
+    },
+    "columns": {
+      "hash": "Hash",
+      "from": "Nadawca",
+      "to": "Odbiorca",
+      "value": "Wartość (ETH)",
+      "block": "Blok",
+      "status": "Status",
+      "timestamp": "Czas"
+    },
+    "loadError": "Nie udało się wczytać transakcji."
+  },
+  "txDetails": {
+    "title": "Transakcja",
+    "notFound": "Nie znaleziono transakcji.",
+    "loadError": "Nie udało się wczytać transakcji.",
+    "fields": {
+      "hash": "Hash",
+      "status": "Status",
+      "block": "Blok",
+      "from": "Nadawca",
+      "to": "Odbiorca",
+      "value": "Wartość",
+      "timestamp": "Znacznik czasu"
+    }
+  },
+  "wallet": {
+    "title": "Portfel",
+    "notFound": "Nie znaleziono portfela.",
+    "loadError": "Nie udało się wczytać portfela.",
+    "fields": {
+      "address": "Adres",
+      "balance": "Saldo",
+      "txCount": "Liczba transakcji",
+      "lastSeen": "Ostatnia aktywność"
+    },
+    "txTitle": "Transakcje portfela"
+  },
+  "common": {
+    "back": "Wróć",
+    "copy": "Kopiuj",
+    "copied": "Skopiowano",
+    "retry": "Ponów",
+    "unknown": "—"
+  },
+  "notFound": {
+    "title": "Nie znaleziono strony",
+    "description": "Nie udało się znaleźć tego, czego szukasz. Zasób mógł zostać przeniesiony albo link jest nieprawidłowy.",
+    "home": "Wróć na stronę główną",
+    "browseBlocks": "Przeglądaj bloki"
+  },
+  "error": {
+    "title": "Coś poszło nie tak",
+    "description": "Podczas renderowania tej strony wystąpił nieoczekiwany błąd.",
+    "reference": "Identyfikator",
+    "retry": "Spróbuj ponownie"
+  },
+  "status": {
+    "PENDING": "Oczekująca",
+    "CONFIRMED": "Potwierdzona",
+    "FAILED": "Nieudana"
+  },
+  "sync": {
+    "synced": "Zsynchronizowano",
+    "behind": "{n, plural, one {# blok do tyłu} few {# bloki do tyłu} many {# bloków do tyłu} other {# bloków do tyłu}}",
+    "disabled": "Synchronizacja wstrzymana",
+    "tooltip": "Indekser #{db} · głowa łańcucha #{chain}"
   }
 }

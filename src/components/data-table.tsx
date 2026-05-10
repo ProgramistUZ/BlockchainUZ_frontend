@@ -33,6 +33,12 @@ type DataTableProps<T> = {
   emptyLabel?: string;
   skeletonRows?: number;
   skeletonCell?: (colIndex: number) => React.ReactNode;
+  /**
+   * When provided, pagination is controlled by the parent — useful for syncing
+   * page with URL state. Pass both to fully control; pass neither for local state.
+   */
+  page?: number;
+  onPageChange?: (page: number) => void;
 };
 
 export function DataTable<T>({
@@ -43,10 +49,18 @@ export function DataTable<T>({
   emptyLabel,
   skeletonRows = 8,
   skeletonCell,
+  page: controlledPage,
+  onPageChange,
 }: DataTableProps<T>) {
   const t = useTranslations("dataTable");
   const [sort, setSort] = useState<SortState>(null);
-  const [page, setPage] = useState(0);
+  const [uncontrolledPage, setUncontrolledPage] = useState(0);
+  const isControlled = controlledPage !== undefined;
+  const page = isControlled ? controlledPage : uncontrolledPage;
+  const setPage = (next: number) => {
+    if (isControlled) onPageChange?.(next);
+    else setUncontrolledPage(next);
+  };
 
   const sorted = useMemo(() => {
     if (!data) return null;
@@ -174,7 +188,7 @@ export function DataTable<T>({
             <Button
               variant="outline"
               size="icon-sm"
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              onClick={() => setPage(Math.max(0, clampedPage - 1))}
               disabled={clampedPage === 0}
               aria-label={t("previous")}
             >
@@ -186,7 +200,7 @@ export function DataTable<T>({
             <Button
               variant="outline"
               size="icon-sm"
-              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              onClick={() => setPage(Math.min(totalPages - 1, clampedPage + 1))}
               disabled={clampedPage >= totalPages - 1}
               aria-label={t("next")}
             >

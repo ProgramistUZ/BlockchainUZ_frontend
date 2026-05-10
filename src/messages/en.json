@@ -15,6 +15,8 @@
   },
   "nav": {
     "dashboard": "Dashboard",
+    "blocks": "Blocks",
+    "transactions": "Transactions",
     "menu": "Menu",
     "openMenu": "Open menu",
     "language": "Language"
@@ -33,7 +35,9 @@
   },
   "dashboard": {
     "title": "Dashboard",
+    "live": "Live",
     "downloadReport": "Download report",
+    "downloading": "Downloading…",
     "loadError": "Failed to load data.",
     "kpi": {
       "label": "Key metrics",
@@ -41,8 +45,8 @@
       "sinceBlock": "from",
       "totalTransactions": "Total transactions",
       "avgPerBlock": "avg {n}/block",
-      "avgGas": "Average gas usage",
-      "unitsPerTx": "units/tx",
+      "uniqueAddresses": "Unique addresses",
+      "tracked": "tracked on-chain",
       "totalEth": "Total ETH value",
       "ethTestnet": "eth (testnet)"
     },
@@ -71,5 +75,136 @@
       "value": "value (eth)",
       "status": "status"
     }
+  },
+  "search": {
+    "placeholder": "Search by block, tx hash or address",
+    "submit": "Search",
+    "invalid": "Unknown input. Try a block number, 0x-prefixed tx hash or address.",
+    "notFound": "No match found for {query}.",
+    "hint": "block number, tx hash or 0x… address"
+  },
+  "commandPalette": {
+    "title": "Command palette",
+    "placeholder": "Type a command or search…",
+    "empty": "No results.",
+    "navigation": "Navigation",
+    "goto": "Go to",
+    "recent": "Recent searches",
+    "preferences": "Preferences"
+  },
+  "breadcrumbs": {
+    "home": "Home",
+    "blocks": "Blocks",
+    "transactions": "Transactions",
+    "wallets": "Wallets",
+    "search": "Search"
+  },
+  "blocks": {
+    "title": "Blocks",
+    "subtitle": "Latest {n} blocks indexed from the network.",
+    "columns": {
+      "number": "Block",
+      "hash": "Hash",
+      "timestamp": "Age",
+      "tx": "Txs",
+      "parent": "Parent"
+    },
+    "loadError": "Failed to load blocks."
+  },
+  "blockDetails": {
+    "title": "Block #{number}",
+    "notFound": "Block not found.",
+    "loadError": "Failed to load block.",
+    "fields": {
+      "number": "Block number",
+      "hash": "Hash",
+      "parent": "Parent hash",
+      "timestamp": "Timestamp",
+      "age": "Age",
+      "txCount": "Transaction count"
+    },
+    "prev": "Previous block",
+    "next": "Next block",
+    "txTitle": "Transactions in block",
+    "noTx": "No transactions in this block."
+  },
+  "transactions": {
+    "title": "Transactions",
+    "subtitle": "Search and filter transactions across the network.",
+    "filters": {
+      "hash": "Transaction hash",
+      "address": "Address (from/to)",
+      "blockNumber": "Block number",
+      "status": "Status",
+      "allStatuses": "All statuses",
+      "apply": "Apply",
+      "reset": "Reset"
+    },
+    "columns": {
+      "hash": "Hash",
+      "from": "From",
+      "to": "To",
+      "value": "Value (ETH)",
+      "block": "Block",
+      "status": "Status",
+      "timestamp": "Age"
+    },
+    "loadError": "Failed to load transactions."
+  },
+  "txDetails": {
+    "title": "Transaction",
+    "notFound": "Transaction not found.",
+    "loadError": "Failed to load transaction.",
+    "fields": {
+      "hash": "Hash",
+      "status": "Status",
+      "block": "Block",
+      "from": "From",
+      "to": "To",
+      "value": "Value",
+      "timestamp": "Timestamp"
+    }
+  },
+  "wallet": {
+    "title": "Wallet",
+    "notFound": "Wallet not found.",
+    "loadError": "Failed to load wallet.",
+    "fields": {
+      "address": "Address",
+      "balance": "Balance",
+      "txCount": "Transaction count",
+      "lastSeen": "Last activity"
+    },
+    "txTitle": "Wallet transactions"
+  },
+  "common": {
+    "back": "Back",
+    "copy": "Copy",
+    "copied": "Copied",
+    "retry": "Retry",
+    "unknown": "—"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "We couldn't find what you were looking for. The resource may have been moved or the link may be incorrect.",
+    "home": "Back to home",
+    "browseBlocks": "Browse blocks"
+  },
+  "error": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred while rendering this page.",
+    "reference": "Reference",
+    "retry": "Try again"
+  },
+  "status": {
+    "PENDING": "Pending",
+    "CONFIRMED": "Confirmed",
+    "FAILED": "Failed"
+  },
+  "sync": {
+    "synced": "Synced",
+    "behind": "{n, plural, one {# block behind} other {# blocks behind}}",
+    "disabled": "Sync paused",
+    "tooltip": "Indexer at #{db} · chain head #{chain}"
   }
 }

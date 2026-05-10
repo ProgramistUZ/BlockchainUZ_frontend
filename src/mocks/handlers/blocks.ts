@@ -1,13 +1,17 @@
 import { http, HttpResponse } from "msw";
-import { blocks } from "../fixtures/blocks";
-import { transactions } from "../fixtures/transactions";
+import { blocks, transactions } from "../fixtures";
+import { maybeFail } from "../chaos";
 import type { PaginatedResponse, Block } from "@/types/api";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api";
+import { env } from "@/lib/env";
+
+const API = env.NEXT_PUBLIC_API_URL;
 
 export const blockHandlers = [
   // GET /api/blocks — paginated list
   http.get(`${API}/blocks`, ({ request }) => {
+    const fail = maybeFail();
+    if (fail) return fail;
     const url = new URL(request.url);
     const page = Number(url.searchParams.get("page") ?? 0);
     const size = Number(url.searchParams.get("size") ?? 20);
@@ -57,6 +61,48 @@ export const blockHandlers = [
     return HttpResponse.json({
       ...block,
       transactions: transactions.filter((tx) => tx.blockNumber === block.number),
+    });
+  }),
+
+  // GET /api/blocks/number/:number/previous
+  http.get(`${API}/blocks/number/:number/previous`, ({ params }) => {
+    const num = Number(params.number);
+    const prev = blocks.find((b) => b.number === num - 1);
+    if (!prev) {
+      return HttpResponse.json(
+        {
+          status: 404,
+          message: "Previous block not found",
+          timestamp: new Date().toISOString(),
+          path: `/api/blocks/number/${params.number}/previous`,
+        },
+        { status: 404 },
+      );
+    }
+    return HttpResponse.json({
+      ...prev,
+      transactions: transactions.filter((tx) => tx.blockNumber === prev.number),
+    });
+  }),
+
+  // GET /api/blocks/number/:number/next
+  http.get(`${API}/blocks/number/:number/next`, ({ params }) => {
+    const num = Number(params.number);
+    const next = blocks.find((b) => b.number === num + 1);
+    if (!next) {
+      return HttpResponse.json(
+        {
+          status: 404,
+          message: "Next block not found",
+          timestamp: new Date().toISOString(),
+          path: `/api/blocks/number/${params.number}/next`,
+        },
+        { status: 404 },
+      );
+    }
+    return HttpResponse.json({
+      ...next,
+      transactions: transactions.filter((tx) => tx.blockNumber === next.number),
     });
   }),
 ];

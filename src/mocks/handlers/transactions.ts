@@ -1,12 +1,17 @@
 import { http, HttpResponse } from "msw";
-import { transactions } from "../fixtures/transactions";
+import { transactions } from "../fixtures";
+import { maybeFail } from "../chaos";
 import type { PaginatedResponse, Transaction } from "@/types/api";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api";
+import { env } from "@/lib/env";
+
+const API = env.NEXT_PUBLIC_API_URL;
 
 export const transactionHandlers = [
   // GET /api/transactions — paginated list
   http.get(`${API}/transactions`, ({ request }) => {
+    const fail = maybeFail();
+    if (fail) return fail;
     const url = new URL(request.url);
     const page = Number(url.searchParams.get("page") ?? 0);
     const size = Number(url.searchParams.get("size") ?? 20);

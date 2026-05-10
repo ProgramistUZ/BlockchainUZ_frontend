@@ -28,6 +28,39 @@ export interface Wallet {
   lastSeen: string; // ISO 8601
 }
 
+// ── Reports / analytics (Sprint 3 backend) ─────────────────────────
+
+export interface Stats {
+  totalBlocks: number;
+  totalTransactions: number;
+  totalUniqueAddresses: number;
+  averageBlockTime: number; // seconds
+  averageTransactionValue: string; // BigDecimal — string preserves precision
+}
+
+export interface VolumeReport {
+  date: string; // ISO 8601 date (yyyy-MM-dd)
+  transactionCount: number;
+  totalVolume: string; // BigDecimal
+}
+
+export type VolumePeriod = "daily" | "weekly";
+
+export interface TopAddress {
+  address: string;
+  transactionCount: number;
+}
+
+// ── Sync (Sprint 1/2 backend) ──────────────────────────────────────
+
+export interface SyncStatus {
+  latestBlockchainBlock: number;
+  latestDatabaseBlock: number;
+  blocksBehind: number;
+  syncEnabled: boolean;
+  isFullySynced: boolean;
+}
+
 // ── Generic response wrappers ──────────────────────────────────────
 
 export interface PaginatedResponse<T> {
@@ -45,7 +78,7 @@ export interface ErrorResponse {
   path: string;
 }
 
-// ── Search params ──────────────────────────────────────────────────
+// ── Search / query params ──────────────────────────────────────────
 
 export interface TransactionSearchParams {
   hash?: string;
@@ -54,9 +87,17 @@ export interface TransactionSearchParams {
   address?: string;
   page?: number;
   size?: number;
+  sort?: string; // Spring Pageable — e.g. "timestamp,desc"
 }
 
 export interface PaginationParams {
   page?: number;
   size?: number;
+  sort?: string; // Spring Pageable — e.g. "number,desc"
+}
+
+export interface ReportExportParams {
+  startDate?: string; // yyyy-MM-dd
+  endDate?: string; // yyyy-MM-dd
+  address?: string;
 }
