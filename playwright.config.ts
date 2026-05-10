@@ -22,5 +22,12 @@ export default defineConfig({
     url: "http://localhost:3000/en",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    // E2E must run against the MSW mocks — the real backend is not available
+    // in CI and developer machines without Docker. .env.local is git-ignored,
+    // so set the flag here so the dev server sees it regardless of environment.
+    env: {
+      NEXT_PUBLIC_USE_MOCKS: "true",
+      NEXT_PUBLIC_API_URL: "http://localhost:8080/api",
+    },
   },
 });
