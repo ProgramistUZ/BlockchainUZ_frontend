@@ -37,6 +37,7 @@
     "title": "Panel",
     "live": "Na żywo",
     "downloadReport": "Pobierz raport",
+    "downloading": "Pobieranie…",
     "loadError": "Nie udało się wczytać danych.",
     "kpi": {
       "label": "Kluczowe wskaźniki",
@@ -44,8 +45,8 @@
       "sinceBlock": "od",
       "totalTransactions": "Łączne transakcje",
       "avgPerBlock": "średnio {n}/blok",
-      "avgGas": "Średnie zużycie gasu",
-      "unitsPerTx": "jednostek/tx",
+      "uniqueAddresses": "Unikalne adresy",
+      "tracked": "śledzone on-chain",
       "totalEth": "Łączna wartość ETH",
       "ethTestnet": "eth (testnet)"
     },
@@ -199,5 +200,11 @@
     "PENDING": "Oczekująca",
     "CONFIRMED": "Potwierdzona",
     "FAILED": "Nieudana"
+  },
+  "sync": {
+    "synced": "Zsynchronizowano",
+    "behind": "{n, plural, one {# blok do tyłu} few {# bloki do tyłu} many {# bloków do tyłu} other {# bloków do tyłu}}",
+    "disabled": "Synchronizacja wstrzymana",
+    "tooltip": "Indekser #{db} · głowa łańcucha #{chain}"
   }
 }

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import { toast } from "sonner";
 import { Link } from "@/i18n/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,8 +14,13 @@ import { StatusBadge } from "@/components/status-badge";
 import { ErrorState } from "@/components/status-states";
 import { useAsyncResource } from "@/hooks/use-async-resource";
 import { useInterval } from "@/hooks/use-interval";
-import { getBlocks, getTransactions } from "@/services/api";
-import type { Block, Transaction } from "@/types/api";
+import {
+  exportTransactionsCsv,
+  getBlocks,
+  getStats,
+  getTransactions,
+} from "@/services/api";
+import type { Block, Stats, Transaction } from "@/types/api";
 import { Download } from "lucide-react";
 import { formatEth, formatInt, formatRelative } from "@/lib/format";
 
@@ -28,24 +34,40 @@ type Kpi = {
   sinceBlock: number;
   totalTransactions: number;
   avgTxPerBlock: number;
-  avgGasPerTx: number;
+  uniqueAddresses: number | null;
   totalEth: number;
 };
 
-function computeKpi(data: DashboardData): Kpi {
+// Combines live block data with the backend's aggregate stats endpoint.
+// Falls back to the block-level sample when stats are unavailable so the
+// dashboard still renders meaningful numbers in a pure-mock environment.
+function computeKpi(data: DashboardData, stats: Stats | null): Kpi {
   const { blocks, transactions } = data;
-  const totalTx = blocks.reduce((s, b) => s + b.transactionCount, 0);
+  const totalTxSample = blocks.reduce((s, b) => s + b.transactionCount, 0);
+  const totalEth =
+    Math.round(
+      transactions.reduce((s, x) => s + Number(x.value ?? 0), 0) * 10,
+    ) / 10;
+
   return {
-    processedBlocks: blocks.length,
+    processedBlocks: stats?.totalBlocks ?? blocks.length,
     sinceBlock: blocks.length > 0 ? blocks[blocks.length - 1]!.number : 0,
-    totalTransactions: transactions.length,
-    avgTxPerBlock: blocks.length > 0 ? Math.round(totalTx / blocks.length) : 0,
-    avgGasPerTx: 83293,
-    totalEth:
-      Math.round(
-        transactions.reduce((s, x) => s + Number(x.value ?? 0), 0) * 10,
-      ) / 10,
+    totalTransactions: stats?.totalTransactions ?? transactions.length,
+    avgTxPerBlock: blocks.length > 0 ? Math.round(totalTxSample / blocks.length) : 0,
+    uniqueAddresses: stats?.totalUniqueAddresses ?? null,
+    totalEth,
   };
+}
+
+function downloadBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
 
 export default function DashboardPage() {
@@ -61,9 +83,31 @@ export default function DashboardPage() {
   }, []);
 
   const { data, error, refresh } = useAsyncResource(load, []);
-  const kpi = data ? computeKpi(data) : null;
+
+  // Stats are optional — if the reporting backend is unreachable, fall back
+  // silently to block-level calculations rather than blocking the dashboard.
+  const loadStats = useCallback(() => getStats(), []);
+  const { data: stats } = useAsyncResource(loadStats, []);
+
+  const kpi = data ? computeKpi(data, stats) : null;
 
   useInterval(refresh, 12_000);
+
+  const [exporting, setExporting] = useState(false);
+  const onDownload = useCallback(async () => {
+    setExporting(true);
+    try {
+      const blob = await exportTransactionsCsv();
+      const stamp = new Date().toISOString().slice(0, 10);
+      downloadBlob(blob, `transactions-${stamp}.csv`);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to download report",
+      );
+    } finally {
+      setExporting(false);
+    }
+  }, []);
 
   const lastSeenBlock = useRef<number | null>(null);
   const [pulse, setPulse] = useState(false);
@@ -164,9 +208,13 @@ export default function DashboardPage() {
           variant="outline"
           size="default"
           aria-label={t("downloadReport")}
+          disabled={exporting}
+          onClick={onDownload}
         >
           <Download className="size-4" aria-hidden="true" />
-          <span className="hidden sm:inline">{t("downloadReport")}</span>
+          <span className="hidden sm:inline">
+            {exporting ? t("downloading") : t("downloadReport")}
+          </span>
         </Button>
       </div>
 
@@ -189,9 +237,9 @@ export default function DashboardPage() {
           loading={!kpi}
         />
         <KpiCard
-          label={t("kpi.avgGas")}
-          value={kpi?.avgGasPerTx}
-          sub={t("kpi.unitsPerTx")}
+          label={t("kpi.uniqueAddresses")}
+          value={kpi?.uniqueAddresses ?? undefined}
+          sub={t("kpi.tracked")}
           loading={!kpi}
         />
         <KpiCard

@@ -63,4 +63,46 @@ export const blockHandlers = [
       transactions: transactions.filter((tx) => tx.blockNumber === block.number),
     });
   }),
+
+  // GET /api/blocks/number/:number/previous
+  http.get(`${API}/blocks/number/:number/previous`, ({ params }) => {
+    const num = Number(params.number);
+    const prev = blocks.find((b) => b.number === num - 1);
+    if (!prev) {
+      return HttpResponse.json(
+        {
+          status: 404,
+          message: "Previous block not found",
+          timestamp: new Date().toISOString(),
+          path: `/api/blocks/number/${params.number}/previous`,
+        },
+        { status: 404 },
+      );
+    }
+    return HttpResponse.json({
+      ...prev,
+      transactions: transactions.filter((tx) => tx.blockNumber === prev.number),
+    });
+  }),
+
+  // GET /api/blocks/number/:number/next
+  http.get(`${API}/blocks/number/:number/next`, ({ params }) => {
+    const num = Number(params.number);
+    const next = blocks.find((b) => b.number === num + 1);
+    if (!next) {
+      return HttpResponse.json(
+        {
+          status: 404,
+          message: "Next block not found",
+          timestamp: new Date().toISOString(),
+          path: `/api/blocks/number/${params.number}/next`,
+        },
+        { status: 404 },
+      );
+    }
+    return HttpResponse.json({
+      ...next,
+      transactions: transactions.filter((tx) => tx.blockNumber === next.number),
+    });
+  }),
 ];

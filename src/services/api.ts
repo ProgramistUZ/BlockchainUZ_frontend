@@ -2,8 +2,14 @@ import type {
   Block,
   PaginatedResponse,
   PaginationParams,
+  ReportExportParams,
+  Stats,
+  SyncStatus,
+  TopAddress,
   Transaction,
   TransactionSearchParams,
+  VolumePeriod,
+  VolumeReport,
   Wallet,
 } from "@/types/api";
 
@@ -42,13 +48,18 @@ export async function apiFetch<T>(
   return res.json() as Promise<T>;
 }
 
-// ── Blocks ─────────────────────────────────────────────────────────
-
-export function getBlocks(params: PaginationParams = {}) {
+function buildPageQuery(params: PaginationParams): URLSearchParams {
   const q = new URLSearchParams();
   if (params.page != null) q.set("page", String(params.page));
   if (params.size != null) q.set("size", String(params.size));
-  return apiFetch<PaginatedResponse<Block>>(`/blocks?${q}`);
+  if (params.sort) q.set("sort", params.sort);
+  return q;
+}
+
+// ── Blocks ─────────────────────────────────────────────────────────
+
+export function getBlocks(params: PaginationParams = {}) {
+  return apiFetch<PaginatedResponse<Block>>(`/blocks?${buildPageQuery(params)}`);
 }
 
 export function getLatestBlock() {
@@ -63,13 +74,20 @@ export function getBlockByNumber(number: number) {
   return apiFetch<Block>(`/blocks/number/${number}`);
 }
 
+export function getPreviousBlock(number: number) {
+  return apiFetch<Block>(`/blocks/number/${number}/previous`);
+}
+
+export function getNextBlock(number: number) {
+  return apiFetch<Block>(`/blocks/number/${number}/next`);
+}
+
 // ── Transactions ───────────────────────────────────────────────────
 
 export function getTransactions(params: PaginationParams = {}) {
-  const q = new URLSearchParams();
-  if (params.page != null) q.set("page", String(params.page));
-  if (params.size != null) q.set("size", String(params.size));
-  return apiFetch<PaginatedResponse<Transaction>>(`/transactions?${q}`);
+  return apiFetch<PaginatedResponse<Transaction>>(
+    `/transactions?${buildPageQuery(params)}`,
+  );
 }
 
 export function getTransactionByHash(hash: string) {
@@ -77,13 +95,11 @@ export function getTransactionByHash(hash: string) {
 }
 
 export function searchTransactions(params: TransactionSearchParams = {}) {
-  const q = new URLSearchParams();
+  const q = buildPageQuery(params);
   if (params.hash) q.set("hash", params.hash);
   if (params.blockNumber != null) q.set("blockNumber", String(params.blockNumber));
   if (params.status) q.set("status", params.status);
   if (params.address) q.set("address", params.address);
-  if (params.page != null) q.set("page", String(params.page));
-  if (params.size != null) q.set("size", String(params.size));
   return apiFetch<PaginatedResponse<Transaction>>(`/transactions/search?${q}`);
 }
 
@@ -93,9 +109,71 @@ export function getWallet(address: string) {
   return apiFetch<Wallet>(`/wallets/${address}`);
 }
 
+// Backend returns a bare BigDecimal; we keep it as a string for precision.
+export function getWalletBalance(address: string) {
+  return apiFetch<string>(`/wallets/${address}/balance`);
+}
+
 export function getWalletTransactions(
   address: string,
   params: PaginationParams = {},
 ) {
-  return searchTransactions({ address, ...params });
+  return apiFetch<PaginatedResponse<Transaction>>(
+    `/wallets/${address}/transactions?${buildPageQuery(params)}`,
+  );
+}
+
+// ── Reports / analytics ────────────────────────────────────────────
+
+export function getStats() {
+  return apiFetch<Stats>("/reports/stats");
+}
+
+export function getVolumeReport(period: VolumePeriod = "daily") {
+  const q = new URLSearchParams({ period });
+  return apiFetch<VolumeReport[]>(`/reports/volume?${q}`);
+}
+
+export function getTopAddresses(limit = 10) {
+  const q = new URLSearchParams({ limit: String(limit) });
+  return apiFetch<TopAddress[]>(`/reports/top-addresses?${q}`);
+}
+
+function buildExportQuery(params: ReportExportParams): URLSearchParams {
+  const q = new URLSearchParams();
+  if (params.startDate) q.set("startDate", params.startDate);
+  if (params.endDate) q.set("endDate", params.endDate);
+  if (params.address) q.set("address", params.address);
+  return q;
+}
+
+async function fetchReportBlob(
+  format: "csv" | "json",
+  params: ReportExportParams,
+): Promise<Blob> {
+  const res = await fetch(
+    `${API_URL}/reports/export/${format}?${buildExportQuery(params)}`,
+  );
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ message: res.statusText }));
+    throw new ApiError(
+      res.status,
+      body.message ?? `Export failed: ${res.status}`,
+    );
+  }
+  return res.blob();
+}
+
+export function exportTransactionsCsv(params: ReportExportParams = {}) {
+  return fetchReportBlob("csv", params);
+}
+
+export function exportTransactionsJson(params: ReportExportParams = {}) {
+  return fetchReportBlob("json", params);
+}
+
+// ── Sync ───────────────────────────────────────────────────────────
+
+export function getSyncStatus() {
+  return apiFetch<SyncStatus>("/sync/status");
 }

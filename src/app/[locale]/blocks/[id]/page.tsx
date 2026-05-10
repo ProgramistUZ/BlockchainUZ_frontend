@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, use, useEffect } from "react";
+import { useCallback, use, useEffect, useState } from "react";
 import { notFound } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -22,7 +22,13 @@ import { CopyButton } from "@/components/copy-button";
 import { StatusBadge } from "@/components/status-badge";
 import { ErrorState, EmptyState } from "@/components/status-states";
 import { useAsyncResource } from "@/hooks/use-async-resource";
-import { ApiError, getBlockByHash, getBlockByNumber } from "@/services/api";
+import {
+  ApiError,
+  getBlockByHash,
+  getBlockByNumber,
+  getNextBlock,
+  getPreviousBlock,
+} from "@/services/api";
 import type { Block, Transaction } from "@/types/api";
 import {
   formatEth,
@@ -55,6 +61,43 @@ export default function BlockDetailsPage({ params }: PageProps) {
   useEffect(() => {
     if (error instanceof ApiError && error.isNotFound) notFound();
   }, [error]);
+
+  // Probe adjacent blocks so we can disable nav buttons at chain boundaries
+  // and route to the actual neighbour number (which may not be current ±1
+  // once the backend tolerates gaps).
+  const [neighbours, setNeighbours] = useState<{
+    prev: number | null;
+    next: number | null;
+  }>({ prev: null, next: null });
+
+  useEffect(() => {
+    if (!block) return;
+    let cancelled = false;
+    Promise.all([
+      getPreviousBlock(block.number).catch((e: unknown) => {
+        if (e instanceof ApiError && e.isNotFound) return null;
+        throw e;
+      }),
+      getNextBlock(block.number).catch((e: unknown) => {
+        if (e instanceof ApiError && e.isNotFound) return null;
+        throw e;
+      }),
+    ])
+      .then(([prev, next]) => {
+        if (cancelled) return;
+        setNeighbours({
+          prev: prev?.number ?? null,
+          next: next?.number ?? null,
+        });
+      })
+      .catch(() => {
+        // Leave neighbours empty on unexpected errors; the buttons will render
+        // disabled, which is safer than linking to a definite 404.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [block]);
 
   const txColumns: DataTableColumn<Transaction>[] = [
     {
@@ -130,24 +173,38 @@ export default function BlockDetailsPage({ params }: PageProps) {
               {t("title", { number: formatInt(block.number, locale) })}
             </h1>
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                nativeButton={false}
-                render={<Link href={`/blocks/${block.number - 1}`} />}
-              >
-                <ChevronLeft className="size-3.5" aria-hidden="true" />
-                {t("prev")}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                nativeButton={false}
-                render={<Link href={`/blocks/${block.number + 1}`} />}
-              >
-                {t("next")}
-                <ChevronRight className="size-3.5" aria-hidden="true" />
-              </Button>
+              {neighbours.prev !== null ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  nativeButton={false}
+                  render={<Link href={`/blocks/${neighbours.prev}`} />}
+                >
+                  <ChevronLeft className="size-3.5" aria-hidden="true" />
+                  {t("prev")}
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" disabled>
+                  <ChevronLeft className="size-3.5" aria-hidden="true" />
+                  {t("prev")}
+                </Button>
+              )}
+              {neighbours.next !== null ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  nativeButton={false}
+                  render={<Link href={`/blocks/${neighbours.next}`} />}
+                >
+                  {t("next")}
+                  <ChevronRight className="size-3.5" aria-hidden="true" />
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" disabled>
+                  {t("next")}
+                  <ChevronRight className="size-3.5" aria-hidden="true" />
+                </Button>
+              )}
             </div>
           </div>
 

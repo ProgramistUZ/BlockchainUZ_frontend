@@ -37,6 +37,7 @@
     "title": "Dashboard",
     "live": "Live",
     "downloadReport": "Download report",
+    "downloading": "Downloading…",
     "loadError": "Failed to load data.",
     "kpi": {
       "label": "Key metrics",
@@ -44,8 +45,8 @@
       "sinceBlock": "from",
       "totalTransactions": "Total transactions",
       "avgPerBlock": "avg {n}/block",
-      "avgGas": "Average gas usage",
-      "unitsPerTx": "units/tx",
+      "uniqueAddresses": "Unique addresses",
+      "tracked": "tracked on-chain",
       "totalEth": "Total ETH value",
       "ethTestnet": "eth (testnet)"
     },
@@ -199,5 +200,11 @@
     "PENDING": "Pending",
     "CONFIRMED": "Confirmed",
     "FAILED": "Failed"
+  },
+  "sync": {
+    "synced": "Synced",
+    "behind": "{n, plural, one {# block behind} other {# blocks behind}}",
+    "disabled": "Sync paused",
+    "tooltip": "Indexer at #{db} · chain head #{chain}"
   }
 }

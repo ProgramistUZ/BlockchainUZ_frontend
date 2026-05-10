@@ -17,14 +17,19 @@ and **MSW** (Mock Service Worker).
 
 ## Features
 
-- **Dashboard** — KPI cards (processed blocks, total transactions, avg gas, total ETH),
-  transactions-per-block chart, latest blocks + latest transactions panels with quick links.
+- **Dashboard** — KPI cards (processed blocks, total transactions, unique addresses, total ETH)
+  sourced from `/api/reports/stats` with a graceful fallback to locally computed values,
+  transactions-per-block chart, latest blocks + latest transactions panels with quick links,
+  and a **Download report** button that streams a CSV from `/api/reports/export/csv`.
 - **Blocks** — paginated, sortable list at `/blocks`; detail view at `/blocks/[id]` (accepts
-  number _or_ hash), includes transaction list, prev/next navigation and copy buttons on hashes.
+  number _or_ hash). Prev/next buttons query `/api/blocks/number/:n/previous|next` so they
+  respect chain boundaries (disabled at the first/last indexed block) and tolerate gaps.
 - **Transactions** — filter + search at `/transactions` (hash / address / block / status) with
   **URL-driven state** (shareable, refresh-safe); detail view at `/tx/[hash]`.
 - **Wallets** — `/wallets/[address]` with balance, transaction count, in/out direction column
-  and full tx history.
+  and full tx history pulled from the dedicated `/api/wallets/:address/transactions` endpoint.
+- **Sync indicator** — footer badge polling `/api/sync/status` every 30 s shows whether the
+  indexer is synced, how many blocks it's behind, or if sync has been paused.
 - **Global smart search** — present in the top navbar and on the home page. Detects input type:
   - Integer → navigate to `/blocks/<n>`
   - 0x-prefixed 40-char hex → navigate to `/wallets/<address>`
@@ -185,9 +190,10 @@ src/
 ├── mocks/
 │   ├── browser.ts
 │   ├── chaos.ts                    # Opt-in 500 injection
-│   ├── handlers/                   # blocks / transactions / wallets
+│   ├── handlers/                   # blocks / transactions / wallets / reports / sync
 │   └── fixtures/
 │       ├── generate.ts             # Deterministic PRNG generator
+│       ├── reports.ts              # Stats/volume/top derived from fixture graph
 │       └── index.ts                # Loads and re-exports blocks/tx/wallets
 ├── services/
 │   └── api.ts                      # Typed fetch wrappers for all endpoints
@@ -210,16 +216,26 @@ src/
 
 MSW handlers live in `src/mocks/handlers/` and emulate the backend exactly:
 
-| Method + Path                              | Returns                            |
-| ------------------------------------------ | ---------------------------------- |
-| `GET /api/blocks?page&size`                | `PaginatedResponse<Block>`         |
-| `GET /api/blocks/latest`                   | `Block`                            |
-| `GET /api/blocks/hash/:hash`               | `Block` with embedded transactions |
-| `GET /api/blocks/number/:number`           | `Block` with embedded transactions |
-| `GET /api/transactions?page&size`          | `PaginatedResponse<Transaction>`   |
-| `GET /api/transactions/search?…`           | `PaginatedResponse<Transaction>` — filters: `hash`, `blockNumber`, `status`, `address` |
-| `GET /api/transactions/:hash`              | `Transaction`                      |
-| `GET /api/wallets/:address`                | `Wallet`                           |
+| Method + Path                                       | Returns                            |
+| --------------------------------------------------- | ---------------------------------- |
+| `GET /api/blocks?page&size`                         | `PaginatedResponse<Block>`         |
+| `GET /api/blocks/latest`                            | `Block`                            |
+| `GET /api/blocks/hash/:hash`                        | `Block` with embedded transactions |
+| `GET /api/blocks/number/:number`                    | `Block` with embedded transactions |
+| `GET /api/blocks/number/:number/previous`           | Neighbour `Block` (404 at boundary) |
+| `GET /api/blocks/number/:number/next`               | Neighbour `Block` (404 at boundary) |
+| `GET /api/transactions?page&size`                   | `PaginatedResponse<Transaction>`   |
+| `GET /api/transactions/search?…`                    | `PaginatedResponse<Transaction>` — filters: `hash`, `blockNumber`, `status`, `address` |
+| `GET /api/transactions/:hash`                       | `Transaction`                      |
+| `GET /api/wallets/:address`                         | `Wallet`                           |
+| `GET /api/wallets/:address/balance`                 | `BigDecimal` (as a string)         |
+| `GET /api/wallets/:address/transactions?page&size`  | `PaginatedResponse<Transaction>`   |
+| `GET /api/reports/stats`                            | `Stats` (totals, averages)         |
+| `GET /api/reports/volume?period=daily\|weekly`      | `VolumeReport[]`                   |
+| `GET /api/reports/top-addresses?limit=N`            | `TopAddress[]`                     |
+| `GET /api/reports/export/csv?startDate&endDate&address` | `text/csv` attachment          |
+| `GET /api/reports/export/json?startDate&endDate&address` | `application/json` attachment |
+| `GET /api/sync/status`                              | `SyncStatus`                       |
 
 The service worker is registered by `src/components/msw-provider.tsx` and is controlled by
 `NEXT_PUBLIC_USE_MOCKS`. Set that flag to `false` to talk to the real backend instead.
