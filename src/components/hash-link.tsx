@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Link } from "@/i18n/navigation";
 import { truncateHex } from "@/lib/format";
 import {
@@ -12,11 +13,13 @@ import { cn } from "@/lib/utils";
 type Variant = "tx" | "block" | "wallet";
 
 type Props = {
-  value: string;
+  value: string | null;
   variant: Variant;
   head?: number;
   tail?: number;
   className?: string;
+  /** Rendered when `value` is null (e.g. contract-creation `to`). */
+  fallback?: ReactNode;
 };
 
 function hrefFor(variant: Variant, value: string): string {
@@ -30,7 +33,26 @@ function hrefFor(variant: Variant, value: string): string {
   }
 }
 
-export function HashLink({ value, variant, head, tail, className }: Props) {
+export function HashLink({
+  value,
+  variant,
+  head,
+  tail,
+  className,
+  fallback,
+}: Props) {
+  if (value == null) {
+    return (
+      <span
+        className={cn(
+          "font-mono text-xs italic text-muted-foreground",
+          className,
+        )}
+      >
+        {fallback ?? "—"}
+      </span>
+    );
+  }
   const shown = truncateHex(value, head ?? 6, tail ?? 4);
   return (
     <Tooltip>

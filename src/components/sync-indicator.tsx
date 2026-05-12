@@ -21,7 +21,7 @@ export function SyncIndicator({ className }: { className?: string }) {
 
   if (error || !data) return null;
 
-  const synced = data.isFullySynced;
+  const synced = data.isFullySynced ?? data.fullySynced ?? false;
   const disabled = !data.syncEnabled;
 
   return (

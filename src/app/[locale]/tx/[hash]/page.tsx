@@ -106,13 +106,12 @@ export default function TransactionDetailsPage({ params }: PageProps) {
                   {tx.fromAddress}
                 </Link>
               </Field>
-              <Field label={t("fields.to")} copy={tx.toAddress} fullWidth>
-                <Link
-                  href={`/wallets/${tx.toAddress}`}
-                  className="font-mono break-all text-xs text-primary hover:underline"
-                >
-                  {tx.toAddress}
-                </Link>
+              <Field
+                label={t("fields.to")}
+                copy={tx.toAddress ?? undefined}
+                fullWidth
+              >
+                {renderToAddress(tx.toAddress, t)}
               </Field>
               <Field label={t("fields.value")}>
                 <span className="tabular-nums font-medium">
@@ -134,6 +133,41 @@ export default function TransactionDetailsPage({ params }: PageProps) {
         </Card>
       )}
     </div>
+  );
+}
+
+/**
+ * Renders the "to" field of a transaction.
+ *
+ * Contract-creation transactions have `toAddress: null` — the recipient is a
+ * brand-new contract whose address is derivable only from the receipt. Until
+ * we wire up the receipt lookup, decide how to communicate "no recipient" here.
+ *
+ * TODO(you): implement the null branch. Options:
+ *   (a) Plain disabled label — simple, honest, least information.
+ *   (b) Badge + short hint ("Contract creation — recipient derived from receipt").
+ *   (c) Link to an explainer page or external explorer.
+ * Keep the happy path (string) untouched.
+ */
+function renderToAddress(
+  toAddress: string | null,
+  t: (key: string) => string,
+): React.ReactNode {
+  if (toAddress === null) {
+    // TODO: replace with your chosen UX — 5-10 lines, use the `t("fields.contractCreation")` key.
+    return (
+      <span className="font-mono text-xs italic text-muted-foreground">
+        {t("fields.contractCreation")}
+      </span>
+    );
+  }
+  return (
+    <Link
+      href={`/wallets/${toAddress}`}
+      className="font-mono break-all text-xs text-primary hover:underline"
+    >
+      {toAddress}
+    </Link>
   );
 }
 

@@ -32,7 +32,7 @@ function filterTransactionsForExport(url: URL) {
     filtered = filtered.filter(
       (tx) =>
         tx.fromAddress.toLowerCase() === addr ||
-        tx.toAddress.toLowerCase() === addr,
+        tx.toAddress?.toLowerCase() === addr,
     );
   }
 
@@ -80,7 +80,7 @@ export const reportHandlers = [
         [
           csvEscape(tx.hash),
           csvEscape(tx.fromAddress),
-          csvEscape(tx.toAddress),
+          csvEscape(tx.toAddress ?? ""),
           tx.value,
           tx.blockNumber,
           tx.status,

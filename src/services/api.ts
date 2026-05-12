@@ -5,11 +5,8 @@ import type {
   ReportExportParams,
   Stats,
   SyncStatus,
-  TopAddress,
   Transaction,
   TransactionSearchParams,
-  VolumePeriod,
-  VolumeReport,
   Wallet,
 } from "@/types/api";
 
@@ -129,16 +126,6 @@ export function getStats() {
   return apiFetch<Stats>("/reports/stats");
 }
 
-export function getVolumeReport(period: VolumePeriod = "daily") {
-  const q = new URLSearchParams({ period });
-  return apiFetch<VolumeReport[]>(`/reports/volume?${q}`);
-}
-
-export function getTopAddresses(limit = 10) {
-  const q = new URLSearchParams({ limit: String(limit) });
-  return apiFetch<TopAddress[]>(`/reports/top-addresses?${q}`);
-}
-
 function buildExportQuery(params: ReportExportParams): URLSearchParams {
   const q = new URLSearchParams();
   if (params.startDate) q.set("startDate", params.startDate);
@@ -147,12 +134,11 @@ function buildExportQuery(params: ReportExportParams): URLSearchParams {
   return q;
 }
 
-async function fetchReportBlob(
-  format: "csv" | "json",
-  params: ReportExportParams,
+export async function exportTransactionsCsv(
+  params: ReportExportParams = {},
 ): Promise<Blob> {
   const res = await fetch(
-    `${API_URL}/reports/export/${format}?${buildExportQuery(params)}`,
+    `${API_URL}/reports/export/csv?${buildExportQuery(params)}`,
   );
   if (!res.ok) {
     const body = await res.json().catch(() => ({ message: res.statusText }));
@@ -162,14 +148,6 @@ async function fetchReportBlob(
     );
   }
   return res.blob();
-}
-
-export function exportTransactionsCsv(params: ReportExportParams = {}) {
-  return fetchReportBlob("csv", params);
-}
-
-export function exportTransactionsJson(params: ReportExportParams = {}) {
-  return fetchReportBlob("json", params);
 }
 
 // ── Sync ───────────────────────────────────────────────────────────

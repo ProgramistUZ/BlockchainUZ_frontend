@@ -45,7 +45,7 @@ export const walletHandlers = [
     const history = transactions.filter(
       (tx) =>
         tx.fromAddress.toLowerCase() === addr ||
-        tx.toAddress.toLowerCase() === addr,
+        tx.toAddress?.toLowerCase() === addr,
     );
 
     const start = page * size;

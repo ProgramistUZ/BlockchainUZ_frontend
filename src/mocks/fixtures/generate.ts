@@ -173,6 +173,10 @@ export function generateFixtures(
   }
   for (const tx of transactions) {
     if (tx.status !== "CONFIRMED") continue;
+    // This generator never emits null `toAddress` (see `pick(rng, addresses)`
+    // above), but the Transaction type allows it for contract-creation txs
+    // coming from the real backend.
+    if (tx.toAddress === null) continue;
     const v = Number(tx.value);
     const sender = walletStats.get(tx.fromAddress)!;
     const receiver = walletStats.get(tx.toAddress)!;

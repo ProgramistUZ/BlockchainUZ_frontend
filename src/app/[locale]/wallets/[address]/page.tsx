@@ -89,7 +89,15 @@ export default function WalletPage({ params }: PageProps) {
       cell: (tx) => {
         const outgoing = tx.fromAddress.toLowerCase() === address.toLowerCase();
         const counterparty = outgoing ? tx.toAddress : tx.fromAddress;
-        return <HashLink value={counterparty} variant="wallet" head={8} tail={6} />;
+        return (
+          <HashLink
+            value={counterparty}
+            variant="wallet"
+            head={8}
+            tail={6}
+            fallback={tc("contractCreation")}
+          />
+        );
       },
     },
     {

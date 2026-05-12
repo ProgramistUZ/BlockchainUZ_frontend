@@ -147,7 +147,8 @@
       "value": "Value (ETH)",
       "block": "Block",
       "status": "Status",
-      "timestamp": "Age"
+      "timestamp": "Age",
+      "contractCreation": "Contract creation"
     },
     "loadError": "Failed to load transactions."
   },
@@ -162,7 +163,8 @@
       "from": "From",
       "to": "To",
       "value": "Value",
-      "timestamp": "Timestamp"
+      "timestamp": "Timestamp",
+      "contractCreation": "Contract creation"
     }
   },
   "wallet": {

@@ -11,7 +11,7 @@ const confirmed = transactions.filter((tx) => tx.status === "CONFIRMED");
 const uniqueAddresses = new Set<string>();
 for (const tx of transactions) {
   uniqueAddresses.add(tx.fromAddress);
-  uniqueAddresses.add(tx.toAddress);
+  if (tx.toAddress !== null) uniqueAddresses.add(tx.toAddress);
 }
 
 const totalEth = confirmed.reduce((s, tx) => s + Number(tx.value), 0);
@@ -70,7 +70,9 @@ export const weeklyVolume: VolumeReport[] = bucketByDate(toWeekKey);
 const counts = new Map<string, number>();
 for (const tx of transactions) {
   counts.set(tx.fromAddress, (counts.get(tx.fromAddress) ?? 0) + 1);
-  counts.set(tx.toAddress, (counts.get(tx.toAddress) ?? 0) + 1);
+  if (tx.toAddress !== null) {
+    counts.set(tx.toAddress, (counts.get(tx.toAddress) ?? 0) + 1);
+  }
 }
 
 export const topAddresses: TopAddress[] = [...counts.entries()]

@@ -12,7 +12,8 @@ export interface Block {
 export interface Transaction {
   hash: string;
   fromAddress: string;
-  toAddress: string;
+  // `null` for contract-creation transactions — backend preserves the RPC value.
+  toAddress: string | null;
   value: string; // string to preserve BigDecimal precision
   blockNumber: number;
   status: TransactionStatus;
@@ -58,7 +59,11 @@ export interface SyncStatus {
   latestDatabaseBlock: number;
   blocksBehind: number;
   syncEnabled: boolean;
-  isFullySynced: boolean;
+  // Jackson may serialize the backend's `isFullySynced` boolean as either
+  // `isFullySynced` or `fullySynced` depending on Lombok/Jackson introspection.
+  // Accept both; readers should coalesce.
+  isFullySynced?: boolean;
+  fullySynced?: boolean;
 }
 
 // ── Generic response wrappers ──────────────────────────────────────

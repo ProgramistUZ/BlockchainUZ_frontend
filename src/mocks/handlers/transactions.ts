@@ -56,7 +56,7 @@ export const transactionHandlers = [
       filtered = filtered.filter(
         (tx) =>
           tx.fromAddress.toLowerCase() === addr ||
-          tx.toAddress.toLowerCase() === addr,
+          tx.toAddress?.toLowerCase() === addr,
       );
     }
 

@@ -147,7 +147,8 @@
       "value": "Wartość (ETH)",
       "block": "Blok",
       "status": "Status",
-      "timestamp": "Czas"
+      "timestamp": "Czas",
+      "contractCreation": "Utworzenie kontraktu"
     },
     "loadError": "Nie udało się wczytać transakcji."
   },
@@ -162,7 +163,8 @@
       "from": "Nadawca",
       "to": "Odbiorca",
       "value": "Wartość",
-      "timestamp": "Znacznik czasu"
+      "timestamp": "Znacznik czasu",
+      "contractCreation": "Utworzenie kontraktu"
     }
   },
   "wallet": {
