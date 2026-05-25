@@ -12,6 +12,22 @@ and **MSW** (Mock Service Worker).
 > - Backend: [`../BlockchainUZ_backend`](../BlockchainUZ_backend/README.md) (Spring Boot)
 > - Project board: [ProgramistUZ · Project 3](https://github.com/orgs/ProgramistUZ/projects/3)
 > - Figma: see `../design/` for exported PDFs
+> - Final project report: [`../Finalna wersja projektu.md`](../Finalna%20wersja%20projektu.md)
+
+---
+
+## Project context
+
+This frontend is part of the **BlockchainUZ** academic group project (UZ — Uniwersytet
+Zielonogórski). The project brief mandates a Java application that monitors, ingests and
+reports data from a public blockchain, organised into a strict three-layer architecture
+(Access → Business Logic → Reporting). The MVP requirements ("Must-Have") are fully
+implemented in the backend; this Next.js frontend is a "Nice-to-Have" extension that
+turns the REST API into an interactive blockchain explorer.
+
+The frontend is intentionally backend-agnostic — it talks to the API contract documented
+in the backend README and ships with an MSW mock implementation so it remains demoable
+even when the Spring Boot service is offline.
 
 ---
 
